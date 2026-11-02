@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AutoÉcole Pro – Prototype</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--tx:#14213d;--mu:#6b7690;--pr:#1d4ed8;--bd:#e3e7f0;--ok:#16a34a;--ko:#dc2626;--wa:#d97706;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#171f35;--tx:#e8ecf8;--mu:#93a0c0;--pr:#6c93ff;--bd:#27314d}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#171f35;--tx:#e8ecf8;--mu:#93a0c0;--pr:#6c93ff;--bd:#27314d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.app{display:flex;min-height:100vh}
+nav{width:240px;background:var(--card);border-right:1px solid var(--bd);padding:16px 10px;position:sticky;top:0;height:100vh;overflow:auto;flex-shrink:0}
+.prof{text-align:center;padding:6px 6px 14px;border-bottom:1px solid var(--bd);margin-bottom:10px}
+.av{width:64px;height:64px;border-radius:50%;background:var(--pr);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:700;margin:0 auto 8px}
+.prof b{display:block}.prof small{color:var(--mu)}
+nav a{display:block;padding:10px 12px;border-radius:10px;color:var(--tx);cursor:pointer;margin:2px 0}
+nav a:hover{background:var(--bg)}nav a.on{background:var(--pr);color:#fff}
+main{flex:1;padding:18px;min-width:0;max-width:1100px}
+.top{display:none}
+h2{margin:0 0 12px}h3{margin:18px 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{cursor:pointer;transition:.15s}.kpi:hover{transform:translateY(-2px);border-color:var(--pr)}
+.kpi small{color:var(--mu);font-weight:600;letter-spacing:.04em}.kpi .v{font-size:24px;font-weight:700;margin-top:4px}
+.car{position:relative;border-radius:16px;overflow:hidden;height:150px}
+.sl{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:22px;color:#fff;opacity:0;transition:opacity .6s}
+.sl.on{opacity:1}.sl b{font-size:22px}.dots{position:absolute;bottom:8px;left:0;right:0;text-align:center}
+.dots i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff6;margin:0 3px}.dots i.on{background:#fff}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit}
+label{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}
+button{background:var(--pr);color:#fff;border:0;border-radius:9px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--pr);border:1px solid var(--pr)}button.r{background:var(--ko)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>*{flex:1;min-width:150px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-size:12px}
+.b{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600}.b.ok{background:#16a34a22;color:var(--ok)}.b.ko{background:#dc262622;color:var(--ko)}.b.wa{background:#d9770622;color:var(--wa)}
+.mod{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:14px;z-index:9}
+.mod>div{background:var(--card);border-radius:16px;padding:18px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{background:#d9770618;border:1px dashed var(--wa);border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+@media(max-width:800px){.app{display:block}nav{position:fixed;left:-260px;z-index:8;transition:.2s;top:0;padding-top:calc(16px + env(safe-area-inset-top,0px))}nav.o{left:0}
+.top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.two{grid-template-columns:1fr}}
+</style></head><body>
+<div class="top"><button onclick="document.querySelector('nav').classList.toggle('o')">☰</button><b>AutoÉcole Pro</b></div>
+<div class="app"><nav id="nav"></nav><main id="m"></main></div>
+<div id="modal"></div>
+<script>
+const $=s=>document.querySelector(s), F=n=>n.toLocaleString('fr-FR')+' FCFA';
+const ANX=['Lomé – Bè','Agoè – Assiyéyé','Kpalimé – Centre'];
+let tab='Accueil', f={from:'',to:'',annexe:'Toutes',q:''}, role='DG';
+let C=[
+{n:'KOFFI',p:'Mawuli',c:'90XXXXXX',a:ANX[0],t:120000,pay:120000,d:'2026-04-12',s:'ADMIS',cat:'B',l:'Ewe'},
+{n:'AGBEKO',p:'Afi',c:'91XXXXXX',a:ANX[1],t:100000,pay:60000,d:'2026-05-03',s:'INSCRIT',cat:'B',l:'Français'},
+{n:'MENSAH',p:'Yao',c:'92XXXXXX',a:ANX[0],t:150000,pay:150000,d:'2026-05-20',s:'NON ADMIS',cat:'C',l:'Français'},
+{n:'ADJOVI',p:'Edem',c:'93XXXXXX',a:ANX[2],t:90000,pay:30000,d:'2026-06-08',s:'INSCRIT',cat:'A',l:'Ewe'},
+{n:'TCHALLA',p:'Sika',c:'94XXXXXX',a:ANX[1],t:120000,pay:120000,d:'2026-07-15',s:'ADMIS',cat:'B',l:'Anglais'},
+{n:'DOSSEH',p:'Kokou',c:'95XXXXXX',a:ANX[0],t:110000,pay:50000,d:'2026-08-22',s:'INSCRIT',cat:'B',l:'Français'},
+{n:'LAWSON',p:'Ama',c:'96XXXXXX',a:ANX[2],t:130000,pay:130000,d:'2026-09-05',s:'INSCRIT',cat:'D',l:'Ewe'}];
+let D=[{t:'FIXE',i:'Loyer annexe Bè',m:150000,d:'2026-08-01',a:ANX[0]},{t:'NORMALE',i:'Carburant véhicules',m:80000,d:'2026-08-14',a:ANX[0]},{t:'SPECIALE DG',i:'Mission Kara',m:120000,d:'2026-09-02',a:ANX[1]},{t:'SECRETAIRE',i:'Fournitures bureau',m:25000,d:'2026-09-10',a:ANX[2]},{t:'FIXE',i:'Électricité',m:45000,d:'2026-07-05',a:ANX[1]},{t:'NORMALE',i:'Entretien moto',m:35000,d:'2026-06-18',a:ANX[2]}];
+let R=[...C.filter(c=>c.pay).map(c=>({i:'Paiement – '+c.n+' '+c.p,m:c.pay,d:c.d,a:c.a})),{i:'Frais dossier – KOFFI Mawuli',m:15000,d:'2026-04-20',a:ANX[0]}];
+const MOIS=['Avr','Mai','Juin','Juil','Août','Sep'],INS=[1,2,1,1,1,1+1],REV=[135,210,30,120,50,130],DEP=[60,75,35,45,95,145];
+const inR=d=>(!f.from||d>=f.from)&&(!f.to||d<=f.to), inA=a=>f.annexe==='Toutes'||a===f.annexe;
+const fc=()=>C.filter(c=>inR(c.d)&&inA(c.a)&&(c.n+c.p+c.c).toLowerCase().includes(f.q.toLowerCase()));
+const fd=()=>D.filter(x=>inR(x.d)&&inA(x.a)),fr=()=>R.filter(x=>inR(x.d)&&inA(x.a)),sum=l=>l.reduce((s,x)=>s+x.m,0);
+const MENU=['Accueil','Candidats','Dépenses','Recettes','Bilan Global','Présence','Résultats','Employés','Cours en ligne','Déconnexion'];
+function nav(){$('#nav').innerHTML=`<div class="prof"><div class="av">AK</div><b>Akouété K. Mensah</b><small>Auto-École Excellence</small><br><small>Rôle : ${role}</small></div>`+MENU.filter(t=>role==='DG'||['Candidats','Déconnexion'].includes(t)).map(t=>`<a class="${t===tab?'on':''}" onclick="go('${t}')">${t}</a>`).join('')+`<div style="margin-top:14px"><button class="g" style="width:100%" onclick="role=role==='DG'?'Secrétaire':'DG';tab=role==='DG'?'Accueil':'Candidats';render()">Simuler : ${role==='DG'?'secrétaire':'DG'}</button></div>`}
+function go(t){if(t==='Déconnexion'){modal('Déconnexion','<p>Vous seriez redirigé vers la page de connexion.</p><button onclick="closeM()">OK</button>');return}tab=t;document.querySelector('nav').classList.remove('o');render()}
+function modal(t,h){$('#modal').innerHTML=`<div class="mod" onclick="if(event.target===this)closeM()"><div><h3 style="margin-top:0">${t}</h3>${h}</div></div>`}
+const closeM=()=>$('#modal').innerHTML='';
+function filt(extra=''){return `<div class="row card" style="margin-bottom:12px"><div><label>Recherche</label><input value="${f.q}" oninput="f.q=this.value;render(1)" placeholder="Rechercher…"></div><div><label>Début de période</label><input type="date" id="f1" value="${f.from}"></div><div><label>Fin de période</label><input type="date" id="f2" value="${f.to}"></div><div><label>Annexe / quartier</label><select id="f3">${['Toutes',...ANX].map(a=>`<option ${a===f.annexe?'selected':''}>${a}</option>`).join('')}</select></div><button onclick="f.from=$('#f1').value;f.to=$('#f2').value;f.annexe=$('#f3').value;render()">Appliquer</button>${extra}</div>`}
+function home(){const cs=fc(),ad=cs.filter(c=>c.s==='ADMIS'),na=cs.filter(c=>c.s==='NON ADMIS'),d=sum(fd()),r=sum(fr());
+const K=(l,v,fn)=>`<div class="card kpi" onclick="${fn}"><small>${l}</small><div class="v">${v}</div></div>`;
+return `<h2>Accueil</h2><div class="car" id="car"></div>
+<h3>Sélectionner une annexe</h3><div class="card"><select onchange="f.annexe=this.value;render()">${['Toutes',...ANX].map(a=>`<option ${a===f.annexe?'selected':''}>${a}</option>`).join('')}</select></div>
+<div class="card kpi" style="margin-top:12px" onclick="abo()"><b>🔄 Renouveler mon abonnement</b><br><small style="color:var(--mu)">Abonnement actif jusqu'au 31/12/2026</small></div>
+<h3>Période</h3><div class="grid"><div class="card"><label>Date début</label><input type="date" id="f1" value="${f.from}"></div><div class="card"><label>Date fin</label><input type="date" id="f2" value="${f.to}"></div><div class="card kpi" onclick="f.from=$('#f1').value;f.to=$('#f2').value;render()" style="display:grid;place-items:center"><b>🔍 Appliquer la recherche</b></div></div>
+<h3>Vue d'ensemble</h3><div class="grid">${K('INSCRITS',cs.length,"go('Candidats')")}${K('ADMIS',ad.length,"msg('ADMIS')")}${K('NON ADMIS',na.length,"msg('NON ADMIS')")}${K('DÉPENSES',F(d),"go('Dépenses')")}${K('RECETTES',F(r),"go('Recettes')")}${K('PERMIS RETIRÉS',2,"permis()")}${K('EXPORTER VOS ÉTATS EN PDF','📄 4 documents',"pdf()")}${K("STATISTIQUES D'EXAMEN",'2 sessions',"exam()")}</div>
+<h3>Évolution des inscriptions par mois</h3><div class="card">${bars([{n:'Inscrits',v:INS,c:'var(--pr)'}])}</div>
+<h3>Rapport financier (milliers de FCFA)</h3><div class="card">${bars([{n:'Revenus',v:REV,c:'var(--ok)'},{n:'Dépenses',v:DEP,c:'var(--ko)'}])}</div>`}
+function bars(S){const mx=Math.max(...S.flatMap(s=>s.v))||1,w=100/MOIS.length;let o='<svg viewBox="0 0 600 200" style="width:100%"><g stroke="var(--bd)">'+[0,1,2,3].map(i=>`<line x1="30" x2="600" y1="${20+i*45}" y2="${20+i*45}"/>`).join('')+'</g>';
+MOIS.forEach((m,i)=>{const x=40+i*92;S.forEach((s,j)=>{const h=s.v[i]/mx*155,bw=S.length>1?32:50;o+=`<rect x="${x+j*(bw+3)}" y="${175-h}" width="${bw}" height="${h}" rx="4" fill="${s.c}"/><text x="${x+j*(bw+3)+bw/2}" y="${170-h}" font-size="10" text-anchor="middle" fill="var(--mu)">${s.v[i]}</text>`});o+=`<text x="${x+(S.length>1?33:25)}" y="194" font-size="11" text-anchor="middle" fill="var(--mu)">${m}</text>`});
+return o+'</svg>'+(S.length>1?`<div style="font-size:13px"><span style="color:var(--ok)">■</span> Revenus &nbsp; <span style="color:var(--ko)">■</span> Dépenses</div>`:'')}
+function abo(){modal('Renouveler mon abonnement',[['Mensuel','15 000 FCFA / mois'],['Trimestriel','40 000 FCFA (3 mois)'],['Annuel','150 000 FCFA (12 mois)']].map(p=>`<div class="card kpi" style="margin-bottom:8px" onclick="modal('Paiement','<p>Paiement mobile money (TMoney / Flooz) via agrégateur. <b>${p[0]}</b></p><button onclick=closeM()>Fermer</button>')"><b>${p[0]}</b><br><small>${p[1]}</small></div>`).join(''))}
+function msg(s){const l=fc().filter(c=>c.s===s);modal(s+' – '+l.length+' candidat(s)',`<div class="tw"><table>${l.map(c=>`<tr><td>${c.n} ${c.p}</td><td>${c.c}</td></tr>`).join('')}</table></div><label>Canal(aux)</label><div><label style="display:inline"><input type="checkbox" style="width:auto" checked> SMS</label> <label style="display:inline"><input type="checkbox" style="width:auto"> WhatsApp</label> <label style="display:inline"><input type="checkbox" style="width:auto"> Email</label></div><label>Message</label><textarea rows=3>${s==='ADMIS'?'Félicitations ! Vous avez réussi votre examen.':'Vous n’avez pas été admis cette fois. Contactez-nous pour la reprise.'}</textarea><br><br><button onclick="closeM();toast('Messages envoyés (simulation)')">Envoyer</button> <button class="g" onclick="closeM()">Annuler</button>`)}
+function toast(t){modal('✔',`<p>${t}</p><button onclick="closeM()">OK</button>`)}
+function permis(){modal('Permis retirés','<table><tr><th>Candidat</th><th>Date</th><th>N° permis</th></tr><tr><td>KOFFI Mawuli</td><td>2026-05-02</td><td>TG-0012345</td></tr><tr><td>TCHALLA Sika</td><td>2026-08-10</td><td>TG-0013370</td></tr></table><br><button onclick="closeM()">Fermer</button>')}
+function pdf(){modal('Exporter vos états en PDF',`<div class="two"><div><label>Du</label><input type="date"></div><div><label>Au</label><input type="date"></div></div><br><div class="grid">${['Liste des candidats','Statistiques','Candidats admis','Candidats non soldés'].map(x=>`<button class="g" onclick="toast('PDF « ${x} » généré (simulation)')">⬇ ${x}</button>`).join('')}</div>`)}
+function exam(){modal("Statistiques d'examen",'<p>Sections actives : <b>1</b><br>Total sessions : <b>2</b><br>Dernière mise à jour : <b>28/09/2026</b></p><label>Nouvelle session</label><input placeholder="Intitulé (ex. Session Octobre 2026)"><label>Date</label><input type="date"><br><br><button onclick="closeM();toast(\'Session créée (simulation)\')">Créer une session</button>')}
+function cand(){const l=fc();return `<h2>Candidats</h2>${role==='DG'?filt(''):''}<div class="row" style="margin-bottom:12px"><button onclick="addC()">➕ Ajouter un candidat</button><button class="g" onclick="autre()">Autres frais candidats</button></div>${role!=='DG'?'<div class="note">Mode secrétaire : vous pouvez uniquement enregistrer les inscriptions.</div>':''}<div class="card tw"><table><tr><th>Nom</th><th>Contact</th><th>Annexe</th><th>Permis</th><th>Langue</th><th>Payé / Total</th><th>Statut</th></tr>${l.map(c=>`<tr><td>${c.n} ${c.p}</td><td>${c.c}</td><td>${c.a}</td><td>${c.cat}</td><td>${c.l}</td><td>${F(c.pay)} / ${F(c.t)}</td><td><span class="b ${c.s==='ADMIS'?'ok':c.s==='NON ADMIS'?'ko':'wa'}">${c.s}</span></td></tr>`).join('')||'<tr><td>Aucun résultat</td></tr>'}</table></div>`}
+function addC(){modal('Ajouter un candidat',`<label>Annexe</label><select id="a_a">${ANX.map(a=>`<option>${a}</option>`).join('')}</select><div class="two"><div><label>Nom</label><input id="a_n"></div><div><label>Prénom</label><input id="a_p"></div><div><label>Contact</label><input id="a_c"></div><div><label>Date</label><input type="date" id="a_d" value="2026-10-02"></div><div><label>Montant payé</label><input type="number" id="a_pay" value="0"></div><div><label>Montant total</label><input type="number" id="a_t"></div><div><label>Langue</label><select id="a_l"><option>Ewe</option><option>Français</option><option>Anglais</option></select></div><div><label>Durée (mois)</label><select id="a_m">${[...Array(12)].map((_,i)=>`<option>${i+1}</option>`).join('')}</select></div><div><label>Sexe</label><select><option>Masculin</option><option>Féminin</option></select></div><div><label>Catégorie de permis</label><select id="a_k">${'ABCDE'.split('').map(x=>`<option>${x}</option>`).join('')}</select></div></div><label>Adresse</label><input><label>Email (optionnel)</label><input type="email"><br><br><button onclick="saveC()">Enregistrer</button> <button class="g" onclick="closeM()">Annuler</button>`)}
+function saveC(){const v=i=>$('#a_'+i).value;if(!v('n')||!v('p')){alert('Nom et prénom requis');return}C.push({n:v('n').toUpperCase(),p:v('p'),c:v('c'),a:v('a'),t:+v('t')||0,pay:+v('pay')||0,d:v('d'),s:'INSCRIT',cat:v('k'),l:v('l')});if(+v('pay'))R.push({i:'Paiement – '+v('n').toUpperCase()+' '+v('p'),m:+v('pay'),d:v('d'),a:v('a')});closeM();render()}
+function autre(){modal('Autres frais candidats',`<label>Candidat</label><select>${C.map(c=>`<option>${c.n} ${c.p}</option>`).join('')}</select><label>Intitulé du frais</label><input id="x_i" placeholder="Ex. Frais de dossier"><label>Montant (FCFA)</label><input type="number" id="x_m"><br><br><button onclick="if($('#x_m').value){R.push({i:$('#x_i').value||'Autre frais',m:+$('#x_m').value,d:'2026-10-02',a:ANX[0]})}closeM();render()">Ajouter</button>`)}
+function money(k){const isD=k==='D',l=isD?fd():fr(),T=['FIXE','SPECIALE DG','SECRETAIRE','NORMALE'];
+return `<h2>${isD?'Dépenses':'Recettes'}</h2>${filt()}<div class="row" style="margin-bottom:12px"><button onclick="addM('${k}')">➕ Ajouter ${isD?'une dépense':'une recette'}</button></div><div class="grid" style="margin-bottom:12px"><div class="card"><small>TOTAL</small><div class="v" style="font-size:22px;font-weight:700">${F(sum(l))}</div></div>${isD?T.map(t=>`<div class="card"><small>${t}</small><div style="font-weight:700">${F(sum(l.filter(x=>x.t===t)))}</div></div>`).join(''):''}</div><div class="card tw"><table><tr><th>Date</th>${isD?'<th>Type</th>':''}<th>Intitulé</th><th>Annexe</th><th>Montant</th></tr>${l.map(x=>`<tr><td>${x.d}</td>${isD?`<td><span class="b wa">${x.t}</span></td>`:''}<td>${x.i}</td><td>${x.a}</td><td>${F(x.m)}</td></tr>`).join('')}</table></div>`}
+function addM(k){const isD=k==='D';modal(isD?'Ajouter une dépense':'Ajouter une recette',`${isD?'<label>Type</label><select id="y_t"><option>NORMALE</option><option>FIXE</option><option>SPECIALE DG</option><option>SECRETAIRE</option></select>':''}<label>Intitulé</label><input id="y_i"><label>Montant</label><input type="number" id="y_m"><label>Annexe</label><select id="y_a">${ANX.map(a=>`<option>${a}</option>`).join('')}</select><br><br><button onclick="(${isD?'D':'R'}).push({${isD?"t:$('#y_t').value,":''}i:$('#y_i').value,m:+$('#y_m').value||0,d:'2026-10-02',a:$('#y_a').value});closeM();render()">Enregistrer</button>`)}
+function bilan(){let tr=0,td=0;return `<h2>Bilan Global</h2><div class="card tw"><table><tr><th>Mois</th><th>Revenus</th><th>Dépenses</th><th>Solde</th></tr>${MOIS.map((m,i)=>{tr+=REV[i];td+=DEP[i];const s=REV[i]-DEP[i];return `<tr><td>${m} 2026</td><td>${F(REV[i]*1000)}</td><td>${F(DEP[i]*1000)}</td><td style="color:var(--${s>=0?'ok':'ko'})">${F(s*1000)}</td></tr>`}).join('')}<tr><th>TOTAL</th><th>${F(tr*1000)}</th><th>${F(td*1000)}</th><th>${F((tr-td)*1000)}</th></tr></table></div><h3>Revenus vs Dépenses</h3><div class="card">${bars([{n:'R',v:REV,c:'var(--ok)'},{n:'D',v:DEP,c:'var(--ko)'}])}</div>`}
+let PE=[true,true,false],PC=[true,false,true,true];
+function pres(){const E=['Komi A. (Moniteur)','Ablavi T. (Secrétaire)','Séna D. (Moniteur)'];const tg=(a,i)=>`<td><button class="${a[i]?'':'r'}" onclick="${a===PE?'PE':'PC'}[${i}]=!${a===PE?'PE':'PC'}[${i}];render()">${a[i]?'Présent':'Absent'}</button></td>`;return `<h2>Présence</h2><h3>Employés</h3><div class="card tw"><table>${E.map((e,i)=>`<tr><td>${e}</td>${tg(PE,i)}</tr>`).join('')}</table></div><h3>Candidats</h3><div class="card tw"><table>${C.slice(0,4).map((c,i)=>`<tr><td>${c.n} ${c.p}</td>${tg(PC,i)}</tr>`).join('')}</table></div>`}
+function res(){const T=(t)=>`<div class="card tw"><table><tr><th>Candidat</th><th>Session</th><th>Résultat</th></tr>${C.slice(0,5).map((c,i)=>`<tr><td>${c.n} ${c.p}</td><td>Sept 2026</td><td><span class="b ${(i+(t==='C'?1:0))%3?'ok':'ko'}">${(i+(t==='C'?1:0))%3?'Admis':'Ajourné'}</span></td></tr>`).join('')}</table></div>`;return `<h2>Résultats</h2><h3>Résultat code</h3>${T('K')}<h3>Résultat conduite</h3>${T('C')}`}
+function emp(){return `<h2>Employés</h2><div class="note">Le DG a tous les droits. La secrétaire peut uniquement enregistrer les inscriptions.</div><div class="card tw"><table><tr><th>Nom</th><th>Poste</th><th>Contact</th><th>Annexe</th></tr><tr><td>Komi Adzo</td><td>Moniteur</td><td>90001122</td><td>${ANX[0]}</td></tr><tr><td>Ablavi Tété</td><td>Secrétaire</td><td>91002233</td><td>${ANX[1]}</td></tr><tr><td>Séna Dogbé</td><td>Moniteur</td><td>92003344</td><td>${ANX[2]}</td></tr></table></div>`}
+function cours(){return `<h2>Cours en ligne</h2><div class="grid">${[['Code de la route – Panneaux','12 leçons · Vidéo'],['Priorités et intersections','8 leçons · PDF'],['Quiz : 40 questions type examen','Quiz'],['Conduite : manœuvres de base','6 leçons · Vidéo']].map(c=>`<div class="card kpi" onclick="toast('Lecteur de cours (aperçu)')"><b>${c[0]}</b><br><small style="color:var(--mu)">${c[1]}</small></div>`).join('')}</div>`}
+const VIEWS={Accueil:home,Candidats:cand,'Dépenses':()=>money('D'),Recettes:()=>money('R'),'Bilan Global':bilan,'Présence':pres,'Résultats':res,'Employés':emp,'Cours en ligne':cours};
+const SL=[['Inscrivez-vous au permis B','Offre rentrée –10%','#1d4ed8,#0ea5e9'],['Cours de code en ligne','Révisez depuis chez vous','#7c3aed,#ec4899'],['Conduite accompagnée','Moniteurs certifiés','#059669,#10b981'],['Parrainez un ami','1 mois offert','#d97706,#f59e0b'],['AutoÉcole Pro','Gérez votre auto-école simplement','#0f172a,#334155']];
+let si=0,timer;
+function carousel(){const c=$('#car');if(!c)return;c.innerHTML=SL.map((s,i)=>`<div class="sl ${i===si?'on':''}" style="background:linear-gradient(120deg,${s[2]})"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')+'<div class="dots">'+SL.map((_,i)=>`<i class="${i===si?'on':''}"></i>`).join('')+'</div>'}
+function render(keep){nav();const a=document.activeElement,id=a&&a.placeholder;$('#m').innerHTML=VIEWS[tab]();carousel();if(keep){const e=$('#m input[placeholder]');if(e){e.focus();e.setSelectionRange(99,99)}}}
+clearInterval(timer);timer=setInterval(()=>{si=(si+1)%SL.length;carousel()},3500);
+render();
+</script></body></html>

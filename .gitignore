@@ -1,0 +1,32 @@
+# Environment & secrets
+.env
+.env*.local
+!.env.example
+
+# Node / Web dependencies & build
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Flutter / Mobile dependencies & build
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+android/.gradle
+android/app/build
+ios/.symlinks/
+ios/Pods/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

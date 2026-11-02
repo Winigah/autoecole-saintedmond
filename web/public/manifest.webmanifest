@@ -1,0 +1,17 @@
+{
+  "name": "Auto-École Saint Edmond",
+  "short_name": "Saint Edmond",
+  "description": "Logiciel officiel de gestion et suivi des candidats - Auto-École Saint Edmond, Lomé",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/app_icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
