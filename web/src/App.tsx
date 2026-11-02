@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Users, DollarSign, TrendingUp, Award, BookOpen, 
   UserCheck, Shield, FileText, Send, Menu, X, Plus, 
@@ -141,6 +141,22 @@ export default function App() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // PWA Install prompt
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  useEffect(() => {
+    const onBefore = (e: any) => { e.preventDefault(); setDeferredPrompt(e); };
+    const onInstalled = () => { setDeferredPrompt(null); showToast('Application installee sur votre bureau !'); };
+    window.addEventListener('beforeinstallprompt', onBefore);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBefore);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+  const handleInstallApp = async () => {
+    if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; setDeferredPrompt(null); }
   };
 
   // Helper code generator for candidates
@@ -962,6 +978,19 @@ export default function App() {
                 </>
               )}
             </div>
+
+            {/* Bouton Installer l'application (PWA) */}
+            {deferredPrompt && (
+              <button
+                type="button"
+                onClick={handleInstallApp}
+                title="Installer le logiciel sur votre bureau"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Installer l'application</span>
+              </button>
+            )}
 
             {/* Quick action button based on tab */}
             {activeTab === 'Candidats' && (

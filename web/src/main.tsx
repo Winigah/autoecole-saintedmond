@@ -8,3 +8,12 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// Enregistrement du Service Worker pour activer le bouton "Installer l'application" (PWA)
+if ('serviceWorker' in navigator && import.meta.env.MODE !== 'test') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.log('ServiceWorker registration error:', err);
+    });
+  });
+}
