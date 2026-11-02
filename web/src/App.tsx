@@ -147,7 +147,7 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   useEffect(() => {
     const onBefore = (e: any) => { e.preventDefault(); setDeferredPrompt(e); };
-    const onInstalled = () => { setDeferredPrompt(null); showToast('Application installee sur votre bureau !'); };
+    const onInstalled = () => { setDeferredPrompt(null); showToast('Application installée sur votre bureau !'); };
     window.addEventListener('beforeinstallprompt', onBefore);
     window.addEventListener('appinstalled', onInstalled);
     return () => {
@@ -2317,7 +2317,7 @@ export default function App() {
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>👨 Homme</span>
+                      <span> Homme</span>
                     </button>
                     <button
                       type="button"
@@ -2328,7 +2328,7 @@ export default function App() {
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>👩 Femme</span>
+                      <span> Femme</span>
                     </button>
                   </div>
                   <input type="hidden" name="sexe" value={editCandSexe} />
@@ -2463,9 +2463,9 @@ export default function App() {
                     defaultValue={editingCandidat.type_formation || 'COMPLETE'}
                     className="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-sm font-semibold"
                   >
-                    <option value="COMPLETE">📚 Formation Complète (Code + Conduite)</option>
-                    <option value="CONDUITE_SEULE">🚗 Conduite Uniquement (Code déjà acquis)</option>
-                    <option value="CODE_SEUL">📖 Code Théorique Uniquement</option>
+                    <option value="COMPLETE"> Formation Complète (Code + Conduite)</option>
+                    <option value="CONDUITE_SEULE"> Conduite Uniquement (Code déjà acquis)</option>
+                    <option value="CODE_SEUL"> Code Théorique Uniquement</option>
                   </select>
                 </div>
                 <div>
@@ -2790,7 +2790,7 @@ export default function App() {
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>👨 Homme</span>
+                      <span> Homme</span>
                     </button>
                     <button
                       type="button"
@@ -2801,7 +2801,7 @@ export default function App() {
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>👩 Femme</span>
+                      <span> Femme</span>
                     </button>
                   </div>
                   <input type="hidden" name="sexe" value={newCandSexe} />
