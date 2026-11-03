@@ -5,6 +5,7 @@ import 'dashboard_tab.dart';
 import 'candidats_tab.dart';
 import 'caisse_tab.dart';
 import 'presence_tab.dart';
+import 'gestion_revisions_screen.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -278,6 +279,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Supports de Révision PDF',
+            icon: const Icon(Icons.menu_book, color: Color(0xFF2563EB)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GestionRevisionsScreen(role: _role),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Modifier mes accès',
             icon: const Icon(Icons.lock_reset, color: Color(0xFF2563EB)),

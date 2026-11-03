@@ -379,12 +379,12 @@ class DashboardTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Section Révision & Quiz QCM',
+                          'Cours & Supports de Révision PDF',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Entraînez-vous avec 20 questions types et révisez les panneaux routiers.',
+                          'Consultez et téléchargez les cours officiels partagés par votre auto-école.',
                           style: TextStyle(color: Color(0xFFE9D5FF), fontSize: 12),
                         ),
                       ],

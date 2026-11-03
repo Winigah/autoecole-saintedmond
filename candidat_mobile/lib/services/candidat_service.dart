@@ -4,10 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/candidat_info.dart';
+import '../models/revision_document.dart';
 
 class CandidatService {
   static const String _keyCachedSession = 'candidat_portal_session_v2';
   static const String _keyCodeAcces = 'candidat_portal_code_v2';
+  static const String _keyCachedDocs = 'candidat_portal_docs_v1';
 
   // Configuration Supabase officielle Saint Edmond
   static const String _supabaseUrl = 'https://lnfzpyvauuffkpbyvuux.supabase.co';
@@ -257,5 +259,72 @@ class CandidatService {
     final cleanPhone = telephone.replaceAll(RegExp(r'[^0-9+]'), '');
     final uri = Uri.parse('tel:$cleanPhone');
     return await launchUrl(uri);
+  }
+
+  /// Récupération des cours et fiches de révision PDF partagés par l'Auto-École
+  static Future<List<RevisionDocument>> getDocumentsRevision() async {
+    // 1. Tenter depuis Supabase
+    try {
+      final url = Uri.parse('$_supabaseUrl/rest/v1/presences?type=eq.SUPPORT_REVISION&order=created_at.desc');
+      final res = await http.get(url, headers: _supabaseHeaders).timeout(const Duration(seconds: 6));
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        final docs = <RevisionDocument>[];
+        for (final row in list) {
+          try {
+            final rawJson = row['staff_name']?.toString() ?? '{}';
+            final meta = jsonDecode(rawJson) as Map<String, dynamic>;
+            docs.add(RevisionDocument(
+              id: row['id']?.toString() ?? '',
+              titre: meta['titre']?.toString() ?? 'Support de Révision',
+              description: meta['description']?.toString() ?? '',
+              categorie: meta['categorie']?.toString() ?? 'CODE',
+              urlPdf: meta['url_pdf']?.toString() ?? '',
+              dateAjout: row['date']?.toString() ?? '',
+              taille: meta['taille']?.toString() ?? 'PDF',
+            ));
+          } catch (_) {}
+        }
+
+        if (docs.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_keyCachedDocs, jsonEncode(docs.map((d) => d.toJson()).toList()));
+          return docs;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Cache local hors-ligne
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_keyCachedDocs);
+      if (saved != null) {
+        final List<dynamic> list = jsonDecode(saved);
+        final cached = list.map((j) => RevisionDocument.fromJson(j)).toList();
+        if (cached.isNotEmpty) return cached;
+      }
+    } catch (_) {}
+
+    // 3. Supports par défaut officiels de l'Auto-École Saint Edmond
+    return [
+      RevisionDocument(
+        id: 'doc_init_1',
+        titre: 'Code de la Route — Règles Fondamentales & Priorités',
+        description: 'Support officiel de révision édité par la Direction de l\'Auto-École Saint Edmond.',
+        categorie: 'CODE',
+        urlPdf: 'https://autoecole-saintedmond.onrender.com/cours_code_saint_edmond.pdf',
+        dateAjout: '2026-11-03',
+        taille: '2.4 Mo',
+      ),
+      RevisionDocument(
+        id: 'doc_init_2',
+        titre: 'Signalisation Routière & Dangers du Trafic au Togo',
+        description: 'Guide officiel des panneaux de signalisation, marquages au sol et intersections.',
+        categorie: 'PANNEAUX',
+        urlPdf: 'https://autoecole-saintedmond.onrender.com/cours_panneaux_saint_edmond.pdf',
+        dateAjout: '2026-11-03',
+        taille: '1.9 Mo',
+      ),
+    ];
   }
 }
