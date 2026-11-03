@@ -2413,7 +2413,7 @@ export default function App() {
             </div>
           )}
 
-          {/* ================= COURS EN LIGNE ================= */}
+          
 
         </main>
       </div>
