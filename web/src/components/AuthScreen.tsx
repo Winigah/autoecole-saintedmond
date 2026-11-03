@@ -8,7 +8,6 @@ interface AuthScreenProps {
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
-  // Login fields
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -19,21 +18,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
     setLoginError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
       const res = authenticateUser(loginEmail, loginPassword);
       if (!res.success || !res.user) {
+        setIsLoading(false);
         setLoginError(res.error || 'Identifiant ou mot de passe incorrect.');
         return;
       }
 
+      setIsLoading(false);
       onLoginSuccess(
         'Auto-École Saint Edmond',
         res.user.nom,
         res.user.role,
         res.user.annexe || 'Tokoin Ramco (Siège)'
       );
-    }, 400);
+    } catch (err: any) {
+      setIsLoading(false);
+      setLoginError(err?.message || 'Erreur lors de la connexion. Veuillez réessayer.');
+    }
   };
 
   return (
@@ -114,7 +117,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
               className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               {isLoading ? (
-                <span>Vérification des accès...</span>
+                <span>Connexion en cours...</span>
               ) : (
                 <>
                   <span>Accéder à mon espace</span>
