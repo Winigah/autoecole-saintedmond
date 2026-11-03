@@ -544,6 +544,24 @@ export default function App() {
     const updatedCand = updatedCandidats.find(c => c.id === editingCandidat.id);
     setCandidats(updatedCandidats);
     if (updatedCand) syncService.syncCandidat(updatedCand);
+
+    // --- Synchroniser la recette liée si montant_paye a changé ---
+    const ancienMontantPaye = editingCandidat.montant_paye;
+    if (montant_paye !== ancienMontantPaye) {
+      const updatedRecettes = recettes.map((r) => {
+        // Recette d'inscription initiale liée à ce candidat
+        if (r.candidat_id === editingCandidat.id && r.intitule.startsWith('Premier versement')) {
+          const recetteCorrigee = { ...r, montant: montant_paye };
+          syncService.syncRecette(recetteCorrigee);
+          return recetteCorrigee;
+        }
+        return r;
+      });
+      setRecettes(updatedRecettes);
+      localStorage.setItem('autoecole_recettes_saintedmond', JSON.stringify(updatedRecettes));
+    }
+    // --- Fin synchronisation recette ---
+
     setEditCandPhoto(undefined);
     setModalType(null);
     setEditingCandidat(null);
