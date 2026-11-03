@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Candidat, BilanMois } from '../types';
 import { SAINT_EDMOND_LOGO_BASE64 } from './logoBase64';
@@ -403,8 +403,8 @@ export const generateRecuCandidatPDF = (
     head: [['Désignation des prestations', 'Montant en FCFA']],
     body: [
       ['Frais de Formation', formatFCFA(candidat.montant_total)],
-      ['Montant payé, formatFCFA(candidat.montant_paye)],
-      ['Solde restant, estSolde ? '0 FCFA  (SOLDÉ)' : formatFCFA(montantRestant)],
+      ['Montant payé', formatFCFA(candidat.montant_paye)],
+      ['Solde restant', estSolde ? '0 FCFA  (SOLDÉ)' : formatFCFA(montantRestant)],
     ],
     theme: 'grid',
     headStyles: {
