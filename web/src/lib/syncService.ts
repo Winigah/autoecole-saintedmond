@@ -144,6 +144,18 @@ class SyncService {
     }
   }
 
+  public async deleteDepense(id: string) {
+    if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.enqueue('depenses', 'delete', { id });
+      return;
+    }
+    try {
+      await supabase.from('depenses').delete().eq('id', id);
+    } catch (e) {
+      this.enqueue('depenses', 'delete', { id });
+    }
+  }
+
   public async syncRecette(recette: Recette) {
     if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) {
       this.enqueue('recettes', 'upsert', recette);
@@ -153,6 +165,18 @@ class SyncService {
       await supabase.from('recettes').upsert(recette);
     } catch (e) {
       this.enqueue('recettes', 'upsert', recette);
+    }
+  }
+
+  public async deleteRecette(id: string) {
+    if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.enqueue('recettes', 'delete', { id });
+      return;
+    }
+    try {
+      await supabase.from('recettes').delete().eq('id', id);
+    } catch (e) {
+      this.enqueue('recettes', 'delete', { id });
     }
   }
 

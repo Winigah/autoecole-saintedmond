@@ -120,6 +120,8 @@ export default function App() {
   const [modalData, setModalData] = useState<any>(null);
   const [selectedCandidatForSupplement, setSelectedCandidatForSupplement] = useState<Candidat | null>(null);
   const [editingCandidat, setEditingCandidat] = useState<Candidat | null>(null);
+  const [editingDepense, setEditingDepense] = useState<Depense | null>(null);
+  const [editingRecette, setEditingRecette] = useState<Recette | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Marketing Carousel
@@ -247,7 +249,9 @@ export default function App() {
         setDepenses((prev) => {
           const merged = [...prev];
           cloudData.depenses!.forEach((cd) => {
-            if (!merged.some((d) => d.id === cd.id)) merged.push(cd);
+            const idx = merged.findIndex((d) => d.id === cd.id);
+            if (idx === -1) merged.push(cd);
+            else merged[idx] = cd;
           });
           return merged;
         });
@@ -256,7 +260,9 @@ export default function App() {
         setRecettes((prev) => {
           const merged = [...prev];
           cloudData.recettes!.forEach((cr) => {
-            if (!merged.some((r) => r.id === cr.id)) merged.push(cr);
+            const idx = merged.findIndex((r) => r.id === cr.id);
+            if (idx === -1) merged.push(cr);
+            else merged[idx] = cr;
           });
           return merged;
         });
@@ -280,11 +286,19 @@ export default function App() {
       onDepenseChange: (payload) => {
         if (payload.eventType === 'INSERT') {
           setDepenses((prev) => [payload.new as Depense, ...prev.filter((d) => d.id !== payload.new.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          setDepenses((prev) => prev.map((d) => (d.id === payload.new.id ? (payload.new as Depense) : d)));
+        } else if (payload.eventType === 'DELETE') {
+          setDepenses((prev) => prev.filter((d) => d.id !== payload.old.id));
         }
       },
       onRecetteChange: (payload) => {
         if (payload.eventType === 'INSERT') {
           setRecettes((prev) => [payload.new as Recette, ...prev.filter((r) => r.id !== payload.new.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          setRecettes((prev) => prev.map((r) => (r.id === payload.new.id ? (payload.new as Recette) : r)));
+        } else if (payload.eventType === 'DELETE') {
+          setRecettes((prev) => prev.filter((r) => r.id !== payload.old.id));
         }
       },
     });
@@ -720,6 +734,80 @@ export default function App() {
     setModalType(null);
     showToast('Recette ajoutée.');
   };
+  const handleUpdateDepense = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingDepense) return;
+    const formData = new FormData(e.currentTarget);
+    const intitule = (formData.get('intitule') as string).trim();
+    const montant = Number(formData.get('montant')) || 0;
+    const type = formData.get('type') as any;
+    const annexe = formData.get('annexe') as string;
+    const date = (formData.get('date') as string) || editingDepense.date;
+
+    if (!intitule || montant <= 0) {
+      alert('Veuillez spécifier un intitulé et un montant valide.');
+      return;
+    }
+
+    const updatedDep: Depense = { ...editingDepense, intitule, montant, type, annexe, date };
+    const updatedList = depenses.map(d => d.id === editingDepense.id ? updatedDep : d);
+    setDepenses(updatedList);
+    syncService.syncDepense(updatedDep);
+    setModalType(null);
+    setEditingDepense(null);
+    showToast('Dépense mise à jour avec succès.');
+  };
+
+  const handleDeleteDepense = (id: string, intitule: string) => {
+    if (!window.confirm(`Voulez-vous vraiment supprimer la dépense "${intitule}" ?`)) return;
+    const updatedList = depenses.filter(d => d.id !== id);
+    setDepenses(updatedList);
+    syncService.deleteDepense(id);
+    showToast('Dépense supprimée.');
+  };
+
+  const handleUpdateRecette = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingRecette) return;
+    const formData = new FormData(e.currentTarget);
+    const intitule = (formData.get('intitule') as string).trim();
+    const montant = Number(formData.get('montant')) || 0;
+    const annexe = formData.get('annexe') as string;
+    const date = (formData.get('date') as string) || editingRecette.date;
+
+    if (!intitule || montant <= 0) {
+      alert('Veuillez spécifier un intitulé et un montant valide.');
+      return;
+    }
+
+    const updatedRec: Recette = { ...editingRecette, intitule, montant, annexe, date };
+    const updatedList = recettes.map(r => r.id === editingRecette.id ? updatedRec : r);
+    setRecettes(updatedList);
+    syncService.syncRecette(updatedRec);
+
+    // Si cette recette est liée à un candidat, synchroniser aussi le montant_paye du candidat
+    if (editingRecette.candidat_id && editingRecette.intitule.startsWith('Premier versement')) {
+      const cand = candidats.find(c => c.id === editingRecette.candidat_id);
+      if (cand && cand.montant_paye !== montant) {
+        const updatedCand = { ...cand, montant_paye: montant };
+        setCandidats(candidats.map(c => c.id === cand.id ? updatedCand : c));
+        syncService.syncCandidat(updatedCand);
+      }
+    }
+
+    setModalType(null);
+    setEditingRecette(null);
+    showToast('Recette mise à jour avec succès.');
+  };
+
+  const handleDeleteRecette = (id: string, intitule: string) => {
+    if (!window.confirm(`Voulez-vous vraiment supprimer la recette "${intitule}" ?`)) return;
+    const updatedList = recettes.filter(r => r.id !== id);
+    setRecettes(updatedList);
+    syncService.deleteRecette(id);
+    showToast('Recette supprimée.');
+  };
+
 
   const navigationItems = [
     { name: 'Accueil', icon: TrendingUp, roles: ['DG', 'SUPER_ADMIN'] },
@@ -1636,6 +1724,29 @@ export default function App() {
                         <td className="px-4 py-3.5 text-right font-bold text-rose-600">
                           -{d.montant.toLocaleString('fr-FR')} F
                         </td>
+                        <td className="px-4 py-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingDepense(d);
+                                setModalType('edit_depense');
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition cursor-pointer"
+                              title="Modifier la dépense"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDepense(d.id, d.intitule)}
+                              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-lg transition cursor-pointer"
+                              title="Supprimer la dépense"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1679,6 +1790,29 @@ export default function App() {
                         <td className="px-4 py-3.5 text-slate-600">{r.annexe}</td>
                         <td className="px-4 py-3.5 text-right font-bold text-emerald-600">
                           +{r.montant.toLocaleString('fr-FR')} F
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingRecette(r);
+                                setModalType('edit_recette');
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition cursor-pointer"
+                              title="Modifier la recette"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRecette(r.id, r.intitule)}
+                              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-lg transition cursor-pointer"
+                              title="Supprimer la recette"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -3005,6 +3139,96 @@ export default function App() {
               <div className="pt-3 flex justify-end gap-2">
                 <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
                 <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold">Encaisser</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      
+      {/* Modal Modifier Dépense */}
+      {modalType === 'edit_depense' && editingDepense && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b pb-3 mb-4">
+              <h3 className="font-bold text-lg text-slate-800">Corriger / Modifier la Dépense</h3>
+              <button type="button" onClick={() => { setModalType(null); setEditingDepense(null); }} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateDepense} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Catégorie de Dépense</label>
+                <select name="type" defaultValue={editingDepense.type} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                  <option value="NORMALE">NORMALE (Carburant, entretien)</option>
+                  <option value="FIXE">FIXE (Loyer, salaires, eau/élec)</option>
+                  <option value="SPECIALE_DG">SPÉCIALE DG (Investissement, missions)</option>
+                  <option value="SECRETAIRE">SECRÉTAIRE (Papeterie, menus frais)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé / Motif</label>
+                <input required name="intitule" defaultValue={editingDepense.intitule} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
+                  <input required type="number" name="montant" defaultValue={editingDepense.montant} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-rose-600" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
+                  <select name="annexe" defaultValue={editingDepense.annexe} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                    {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
+                <input required type="date" name="date" defaultValue={editingDepense.date} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+              </div>
+              <div className="pt-3 flex justify-end gap-2">
+                <button type="button" onClick={() => { setModalType(null); setEditingDepense(null); }} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
+                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Modifier Recette */}
+      {modalType === 'edit_recette' && editingRecette && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b pb-3 mb-4">
+              <h3 className="font-bold text-lg text-slate-800">Corriger / Modifier la Recette</h3>
+              <button type="button" onClick={() => { setModalType(null); setEditingRecette(null); }} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateRecette} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé de l'encaissement</label>
+                <input required name="intitule" defaultValue={editingRecette.intitule} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
+                  <input required type="number" name="montant" defaultValue={editingRecette.montant} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
+                  <select name="annexe" defaultValue={editingRecette.annexe} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                    {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
+                <input required type="date" name="date" defaultValue={editingRecette.date} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+              </div>
+              <div className="pt-3 flex justify-end gap-2">
+                <button type="button" onClick={() => { setModalType(null); setEditingRecette(null); }} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold">Enregistrer</button>
               </div>
             </form>
           </div>
