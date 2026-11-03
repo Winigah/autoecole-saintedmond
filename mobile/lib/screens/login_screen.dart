@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/security_service.dart';
 import 'home_screen.dart';
-import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -91,13 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFF0F172A),
                   ),
                 ),
-                const Text(
-                  'Espace Direction & Secrétariat • Lomé',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
                 const SizedBox(height: 32),
 
                 // Card
@@ -118,7 +110,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         'Identifiant ou Email',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
@@ -186,38 +177,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Lien vers l'inscription d'une nouvelle auto-école
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignupScreen()),
-                  ),
-                  child: const Text(
-                    'Inscrire mon Auto-École — Essai 14 jours gratuit',
-                    style: TextStyle(
-                      color: Color(0xFF2563EB),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shield_outlined, size: 16, color: Color(0xFF10B981)),
-                    SizedBox(width: 6),
-                    Text(
-                      'Données chiffrées de bout en bout (AES-256)',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                    ),
-                  ],
                 ),
               ],
             ),
