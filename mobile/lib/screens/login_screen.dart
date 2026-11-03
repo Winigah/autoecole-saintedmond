@@ -39,36 +39,45 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    // Délai anti-attaque temporel
-    await Future.delayed(const Duration(milliseconds: 350));
+    try {
+      final res = await MobileAuthService.login(login: login, password: pwd);
 
-    final res = await MobileAuthService.login(login: login, password: pwd);
+      if (!mounted) return;
 
-    if (!mounted) return;
+      if (!res.success || res.role == null) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = res.error ?? 'Identifiant ou mot de passe incorrect.';
+        });
+        return;
+      }
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (!res.success || res.role == null) {
-      setState(() {
-        _errorMessage = res.error ?? 'Identifiant ou mot de passe incorrect.';
-      });
-      return;
-    }
-
-    // Sauvegarde chiffrée de la session dans KeyStore Android
-    await SecurityService.saveSession(
-      token: 'jwt_secure_token_${DateTime.now().millisecondsSinceEpoch}',
-      role: res.role!,
-    );
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => HomeScreen(initialRole: res.role!),
-        ),
+      // Sauvegarde chiffrée de la session dans KeyStore Android
+      await SecurityService.saveSession(
+        token: 'jwt_secure_token_${DateTime.now().millisecondsSinceEpoch}',
+        role: res.role!,
       );
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(initialRole: res.role!),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Erreur lors de la connexion : $e';
+        });
+      }
+    } finally {
+      if (mounted && _isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
