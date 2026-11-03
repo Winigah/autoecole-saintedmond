@@ -13,6 +13,10 @@ class CandidatService {
   static const String _supabaseUrl = 'https://lnfzpyvauuffkpbyvuux.supabase.co';
   static const String _supabaseAnonKey = 'sb_publishable_2UFebfUzCAPPfa-ISlE_Uw_A30pWMfd';
 
+  // Protection Anti-Bruteforce
+  static int _failedAttempts = 0;
+  static DateTime? _lockoutUntil;
+
   static Map<String, String> get _supabaseHeaders => {
     'apikey': _supabaseAnonKey,
     'Authorization': 'Bearer $_supabaseAnonKey',
@@ -37,14 +41,34 @@ class CandidatService {
     return codeBrut.trim().toUpperCase();
   }
 
+  /// Validation stricte du format pour parer toute tentative d'injection SQL / URL
+  static bool estFormatCodeValide(String code) {
+    return RegExp(r'^[A-Z0-9]{4}-[A-Z0-9]{4}$').hasMatch(code);
+  }
+
   /// Authentification du candidat via son code d'accès réel dans Supabase
   static Future<CandidatPortalData?> authentifierParCode(String codeBrut) async {
+    // Vérification anti-bruteforce
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      return null;
+    }
+
     final code = normaliserCode(codeBrut);
 
+    // Rejet immédiat si format non conforme (bloque les injections d'office)
+    if (!estFormatCodeValide(code)) {
+      _failedAttempts++;
+      if (_failedAttempts >= 5) {
+        _lockoutUntil = DateTime.now().add(const Duration(seconds: 30));
+      }
+      return null;
+    }
+
     try {
-      // 1. Requête vers Supabase REST API pour trouver le candidat avec ce code_acces
+      // 1. Requête sécurisée vers Supabase avec encodage strict
+      final safeCode = Uri.encodeComponent(code);
       final url = Uri.parse(
-        '$_supabaseUrl/rest/v1/candidats?code_acces=eq.$code&select=*',
+        '$_supabaseUrl/rest/v1/candidats?code_acces=eq.$safeCode&select=*',
       );
 
       final response = await http
@@ -59,10 +83,11 @@ class CandidatService {
 
           // 2. Récupérer les paiements réels de ce candidat depuis la table recettes
           List<PaiementCandidat> paiementsReels = [];
-          if (candidatId.isNotEmpty) {
+          if (candidatId.isNotEmpty && RegExp(r'^[a-zA-Z0-9_\-]+$').hasMatch(candidatId)) {
             try {
+              final safeId = Uri.encodeComponent(candidatId);
               final recUrl = Uri.parse(
-                '$_supabaseUrl/rest/v1/recettes?candidat_id=eq.$candidatId&select=*&order=date.desc',
+                '$_supabaseUrl/rest/v1/recettes?candidat_id=eq.$safeId&select=*&order=date.desc',
               );
               final recResponse = await http
                   .get(recUrl, headers: _supabaseHeaders)
@@ -143,21 +168,38 @@ class CandidatService {
             paiements: paiementsReels,
           );
 
+          _failedAttempts = 0;
+          _lockoutUntil = null;
           await _sauvegarderSession(code, portalData);
           return portalData;
         }
       }
     } catch (e) {
-      debugPrint('Tentative connexion cloud échouée, vérification cache local: $e');
+      debugPrint('Connexion cloud indisponible, vérification cache local.');
     }
 
     // 4. Si pas de réseau ou hors-ligne : tenter de restaurer depuis le cache local
     final cached = await getCachedSession();
     if (cached != null && normaliserCode(cached.candidat.codeAcces) == code) {
+      _failedAttempts = 0;
+      _lockoutUntil = null;
       return cached;
     }
 
+    _failedAttempts++;
+    if (_failedAttempts >= 5) {
+      _lockoutUntil = DateTime.now().add(const Duration(seconds: 30));
+    }
+
     return null;
+  }
+
+  /// Vérifie si l'application est temporairement verrouillée contre le bruteforce
+  static int getRemainingLockoutSeconds() {
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      return _lockoutUntil!.difference(DateTime.now()).inSeconds;
+    }
+    return 0;
   }
 
   /// Sauvegarde locale hors-ligne dans SharedPreferences

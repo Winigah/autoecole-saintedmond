@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/security_service.dart';
 import 'home_screen.dart';
 
@@ -13,37 +14,59 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _handleLogin() async {
-    final email = _emailController.text.trim().toLowerCase();
+    final login = _emailController.text.trim();
     final pwd = _passwordController.text.trim();
 
-    if (email.isEmpty || pwd.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez renseigner vos identifiants.')),
-      );
+    if (login.isEmpty || pwd.isEmpty) {
+      setState(() {
+        _errorMessage = 'Veuillez renseigner votre identifiant et mot de passe.';
+      });
       return;
     }
 
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    // Délai anti-attaque temporel
+    await Future.delayed(const Duration(milliseconds: 350));
 
-    // Détermination automatique du rôle selon les identifiants
-    final role = email.contains('secretaire') ? 'SECRETAIRE' : 'DG';
+    final res = await MobileAuthService.login(login: login, password: pwd);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (!res.success || res.role == null) {
+      setState(() {
+        _errorMessage = res.error ?? 'Identifiant ou mot de passe incorrect.';
+      });
+      return;
+    }
 
     // Sauvegarde chiffrée de la session dans KeyStore Android
     await SecurityService.saveSession(
       token: 'jwt_secure_token_${DateTime.now().millisecondsSinceEpoch}',
-      role: role,
+      role: res.role!,
     );
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => HomeScreen(initialRole: role),
+          builder: (_) => HomeScreen(initialRole: res.role!),
         ),
       );
     }
@@ -110,44 +133,90 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFF87171)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  color: Color(0xFFDC2626), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: Color(0xFF991B1B),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
                       const Text(
-                        'Identifiant ou Email',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                        'Identifiant',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B)),
                       ),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.person_outline, size: 20, color: Color(0xFF64748B)),
+                          hintText: 'Ex: DG Saint Edmond ou Secretaire Saint Edmond',
+                          hintStyle: const TextStyle(
+                              fontSize: 12, color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.person_outline,
+                              size: 20, color: Color(0xFF64748B)),
                           filled: true,
                           fillColor: const Color(0xFFF1F5F9),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'Mot de passe',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B)),
                       ),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.lock_outline, size: 20, color: Color(0xFF64748B)),
+                          hintText: '••••••••',
+                          hintStyle: const TextStyle(
+                              fontSize: 14, color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.lock_outline,
+                              size: 20, color: Color(0xFF64748B)),
                           filled: true,
                           fillColor: const Color(0xFFF1F5F9),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 14),
                         ),
+                        onSubmitted: (_) => _handleLogin(),
                       ),
                       const SizedBox(height: 24),
 
@@ -167,11 +236,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const SizedBox(
                                   width: 22,
                                   height: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5, color: Colors.white),
                                 )
                               : const Text(
                                   'Se Connecter',
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
                                 ),
                         ),
                       ),

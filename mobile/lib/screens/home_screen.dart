@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/security_service.dart';
 import 'dashboard_tab.dart';
 import 'candidats_tab.dart';
@@ -33,6 +34,195 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
+  }
+
+  void _showSecurityDialog() async {
+    final currentLogin = await MobileAuthService.getCurrentLogin(_role);
+    if (!mounted) return;
+
+    final loginCtrl = TextEditingController(text: currentLogin);
+    final oldPwdCtrl = TextEditingController();
+    final newPwdCtrl = TextEditingController();
+    final confPwdCtrl = TextEditingController();
+    String? dialogError;
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.key, color: Color(0xFFD97706), size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Modifier mes accès',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Compte : ${_role == 'DG' ? 'Direction Générale (DG)' : 'Secrétariat'}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 14),
+
+                if (dialogError != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFF87171)),
+                    ),
+                    child: Text(
+                      dialogError!,
+                      style: const TextStyle(color: Color(0xFF991B1B), fontSize: 11, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                const Text('Identifiant personnalisé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: loginCtrl,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const Text('Mot de passe actuel (obligatoire)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: oldPwdCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const Text('Nouveau mot de passe', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: newPwdCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Min. 4 caractères',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const Text('Confirmer nouveau mot de passe', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: confPwdCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler', style: TextStyle(color: Color(0xFF64748B))),
+            ),
+            ElevatedButton(
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      if (oldPwdCtrl.text.isEmpty) {
+                        setDialogState(() => dialogError = 'Veuillez saisir votre mot de passe actuel.');
+                        return;
+                      }
+                      if (newPwdCtrl.text.length < 4) {
+                        setDialogState(() => dialogError = 'Le nouveau mot de passe doit comporter au moins 4 caractères.');
+                        return;
+                      }
+                      if (newPwdCtrl.text != confPwdCtrl.text) {
+                        setDialogState(() => dialogError = 'Les deux nouveaux mots de passe ne correspondent pas.');
+                        return;
+                      }
+
+                      setDialogState(() {
+                        isSaving = true;
+                        dialogError = null;
+                      });
+
+                      final ok = await MobileAuthService.changeCredentials(
+                        role: _role,
+                        oldPassword: oldPwdCtrl.text,
+                        newPassword: newPwdCtrl.text,
+                        newLogin: loginCtrl.text.trim(),
+                      );
+
+                      if (!ok) {
+                        setDialogState(() {
+                          isSaving = false;
+                          dialogError = 'Mot de passe actuel incorrect.';
+                        });
+                        return;
+                      }
+
+                      if (!ctx.mounted) return;
+                      Navigator.pop(ctx);
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Color(0xFF10B981),
+                          content: Text('Vos accès ont été mis à jour et sécurisés avec succès !'),
+                        ),
+                      );
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: isSaving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Enregistrer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -88,6 +278,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Modifier mes accès',
+            icon: const Icon(Icons.lock_reset, color: Color(0xFF2563EB)),
+            onPressed: _showSecurityDialog,
+          ),
           IconButton(
             tooltip: 'Déconnexion',
             icon: const Icon(Icons.logout, color: Color(0xFFEF4444)),

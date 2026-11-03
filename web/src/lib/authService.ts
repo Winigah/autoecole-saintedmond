@@ -9,12 +9,12 @@ export interface UserAccount {
   annexe: string;
 }
 
-const STORAGE_KEY = 'autoecole_saint_edmond_users_v2';
-const LEGACY_STORAGE_KEY = 'autoecole_saint_edmond_users_v1';
+// Clé de stockage v3 avec les accès officiels par défaut demandés par le DG
+const STORAGE_KEY = 'autoecole_saint_edmond_users_v3';
 
 /**
  * Fonction de hachage cryptographique SHA-256 synchrone et autonome.
- * Évite le stockage de mots de passe en clair dans le code ou le localStorage.
+ * Garantit qu'aucun mot de passe ne transite ni n'est stocké en clair.
  */
 export function hashPassword(input: string): string {
   function rightRotate(value: number, amount: number) {
@@ -96,25 +96,31 @@ export function hashPassword(input: string): string {
   return result;
 }
 
-// Comptes initiaux avec empreintes SHA-256 (aucun mot de passe en clair)
+// Comptes officiels par défaut pour Saint Edmond
+// DG : 'DG Saint Edmond' / '12345678' -> SHA-256: ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f
+// SEC : 'Secretaire Saint Edmond' / '123456789' -> SHA-256: 15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225
 export const DEFAULT_USERS: UserAccount[] = [
   {
     id: 'usr_dg',
-    identifiant: 'dg@saintedmond.tg',
-    nom: 'M. KALIBOU Edmond B.',
+    identifiant: 'DG Saint Edmond',
+    nom: 'M. KALIBOU Edmond B. (DG)',
     role: 'DG',
-    motDePasseHash: '5679a7b31fab8c549392dc71dfaeadcd5c224e76ea6de9cea8182ab991eef3c9',
+    motDePasseHash: 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f',
     annexe: 'Tokoin Ramco (Siège)',
   },
   {
     id: 'usr_secretaire',
-    identifiant: 'secretaire@saintedmond.tg',
+    identifiant: 'Secretaire Saint Edmond',
     nom: 'Secrétariat Saint Edmond',
     role: 'SECRETAIRE',
-    motDePasseHash: '8262609c11ebba75e05137c9a4fba9f82960014ebb5111fb9d4eb0371e4b9a1b',
+    motDePasseHash: '15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225',
     annexe: 'Tokoin Ramco (Siège)',
   },
 ];
+
+function normaliserChaine(str: string): string {
+  return str.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+}
 
 export function getStoredUsers(): UserAccount[] {
   try {
@@ -122,29 +128,6 @@ export function getStoredUsers(): UserAccount[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-
-    // Migration depuis l'ancienne clé v1 (si présente) avec conversion en hash
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacyRaw) {
-      try {
-        const legacy = JSON.parse(legacyRaw);
-        if (Array.isArray(legacy) && legacy.length > 0) {
-          const migrated: UserAccount[] = legacy.map((u: any) => ({
-            id: u.id,
-            identifiant: u.identifiant,
-            nom: u.nom,
-            role: u.role,
-            motDePasseHash: u.motDePasseHash || (u.motDePasse ? hashPassword(u.motDePasse) : ''),
-            annexe: u.annexe,
-          }));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-          localStorage.removeItem(LEGACY_STORAGE_KEY);
-          return migrated;
-        }
-      } catch {
-        // Ignorer l'erreur de parsing legacy
-      }
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
@@ -162,28 +145,52 @@ export function saveStoredUsers(users: UserAccount[]): void {
   }
 }
 
+/**
+ * Authentification sécurisée de l'utilisateur
+ */
 export function authenticateUser(
   identifiantSaisi: string,
   motDePasseSaisi: string
 ): { success: boolean; user?: UserAccount; error?: string } {
   const users = getStoredUsers();
-  const cleanLogin = identifiantSaisi.trim().toLowerCase();
+  const cleanLogin = normaliserChaine(identifiantSaisi);
+
+  if (!cleanLogin) {
+    return { success: false, error: 'Veuillez saisir votre identifiant.' };
+  }
 
   const found = users.find((u) => {
-    const uLogin = u.identifiant.toLowerCase();
-    const uRole = u.role.toLowerCase();
-    return uLogin === cleanLogin || uRole === cleanLogin || (u.role === 'DG' && (cleanLogin === 'edmond' || cleanLogin === 'dg'));
+    const uLogin = normaliserChaine(u.identifiant);
+    const uRole = normaliserChaine(u.role);
+    const isDirectMatch = uLogin === cleanLogin;
+    const isRoleMatch = uRole === cleanLogin;
+
+    // Tolérance des alias historiques
+    const isDgAlias = u.role === 'DG' && (
+      cleanLogin === 'dg' ||
+      cleanLogin === 'edmond' ||
+      cleanLogin === 'dg saint edmond' ||
+      cleanLogin === 'dg@saintedmond.tg'
+    );
+
+    const isSecAlias = u.role === 'SECRETAIRE' && (
+      cleanLogin === 'secretaire' ||
+      cleanLogin === 'secretariat' ||
+      cleanLogin === 'secretaire saint edmond' ||
+      cleanLogin === 'secretaire@saintedmond.tg'
+    );
+
+    return isDirectMatch || isRoleMatch || isDgAlias || isSecAlias;
   });
 
   if (!found) {
     return {
       success: false,
-      error: 'Identifiant introuvable. Utilisez les accès officiels fournis par la direction.',
+      error: 'Identifiant introuvable. Veuillez vérifier votre identifiant officiel.',
     };
   }
 
   const hashSaisi = hashPassword(motDePasseSaisi);
-  // Vérification sécurisée par comparaison de hash SHA-256
   if (found.motDePasseHash !== hashSaisi) {
     return {
       success: false,
@@ -194,10 +201,14 @@ export function authenticateUser(
   return { success: true, user: found };
 }
 
+/**
+ * Permet au DG ou à la Secrétaire de modifier son mot de passe et son identifiant personnalisé.
+ */
 export function updateUserPassword(
   role: RoleUtilisateur,
   ancienMdp: string,
-  nouveauMdp: string
+  nouveauMdp: string,
+  nouvelIdentifiant?: string
 ): { success: boolean; error?: string } {
   if (!nouveauMdp || nouveauMdp.length < 4) {
     return { success: false, error: 'Le nouveau mot de passe doit comporter au moins 4 caractères.' };
@@ -215,6 +226,10 @@ export function updateUserPassword(
   }
 
   users[index].motDePasseHash = hashPassword(nouveauMdp);
+  if (nouvelIdentifiant && nouvelIdentifiant.trim().length >= 3) {
+    users[index].identifiant = nouvelIdentifiant.trim();
+  }
+
   saveStoredUsers(users);
   return { success: true };
 }

@@ -22,6 +22,12 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
   }
 
   void _validerCode() async {
+    final lockout = CandidatService.getRemainingLockoutSeconds();
+    if (lockout > 0) {
+      setState(() => _errorMessage = "Trop de tentatives infructueuses. Veuillez patienter $lockout secondes pour des raisons de sécurité.");
+      return;
+    }
+
     final code = _codeController.text.trim();
     if (code.isEmpty) {
       setState(() => _errorMessage = "Veuillez saisir votre code d'accès");
