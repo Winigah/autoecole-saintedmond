@@ -326,7 +326,7 @@ export const generateRecuCandidatPDF = (
   const r2Y = startRowY + rowH;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(100, 116, 139);
-  doc.text('Contact Téléphone :', c1LabelX, r2Y);
+  doc.text('Contact :', c1LabelX, r2Y);
   doc.text('Permis visé :', c2LabelX, r2Y);
 
   doc.setFont('helvetica', 'normal');
@@ -402,9 +402,9 @@ export const generateRecuCandidatPDF = (
     margin: { left: 12, right: 12 },
     head: [['Désignation des prestations', 'Montant en FCFA']],
     body: [
-      ['Formation complète au permis (Cours théoriques de code & Pratique de conduite)', formatFCFA(candidat.montant_total)],
-      ['Montant réglé et encaissé à l\'inscription', formatFCFA(candidat.montant_paye)],
-      ['Solde restant à régler avant l\'examen', estSolde ? '0 FCFA  (SOLDÉ)' : formatFCFA(montantRestant)],
+      ['Frais de Formation', formatFCFA(candidat.montant_total)],
+      ['Montant payé, formatFCFA(candidat.montant_paye)],
+      ['Solde restant, estSolde ? '0 FCFA  (SOLDÉ)' : formatFCFA(montantRestant)],
     ],
     theme: 'grid',
     headStyles: {
@@ -463,7 +463,7 @@ export const generateRecuCandidatPDF = (
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(180, 83, 9);
-    doc.text('Le solde restant doit être intégralement soldé avant la date de présentation à l\'examen officiel.', pageW / 2, curY + 12, { align: 'center' });
+    doc.text('Le solde restant doit être intégralement soldé avant sa présentation à l\'examen officiel.', pageW / 2, curY + 12, { align: 'center' });
   }
 
   curY += 22;
@@ -482,7 +482,7 @@ export const generateRecuCandidatPDF = (
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
   doc.text('1. Le présent document certifie l\'inscription régulière du candidat au registre officiel de l\'auto-école.', 16, curY + 10.5);
-  doc.text('2. L\'accès aux cours théoriques et séances pratiques de conduite est subordonné au respect du planning établi.', 16, curY + 15.5);
+  doc.text('2. Toute absence au cours doit être signalé à l\'avance.', 16, curY + 15.5);
   doc.text('3. Le candidat peut accéder à son espace de révision sur l\'application mobile Saint Edmond Candidat avec son identifiant reçu à la Direction.', 16, curY + 20.5);
 
   // Mention formelle de validité & non-remboursement
@@ -504,7 +504,7 @@ export const generateRecuCandidatPDF = (
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 32, 68);
-  doc.text('Pour l\'Administration de l\'Auto-École', pageW / 2, curY + 6, { align: 'center' });
+  doc.text('Par l\'Administration de l\'Auto-École', pageW / 2, curY + 6, { align: 'center' });
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
