@@ -11,7 +11,7 @@ class AuthCodeScreen extends StatefulWidget {
 }
 
 class _AuthCodeScreenState extends State<AuthCodeScreen> {
-  final TextEditingController _codeController = TextEditingController(text: 'K7B9-4X2M');
+  final TextEditingController _codeController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -52,11 +52,6 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
     }
   }
 
-  void _remplirCodeDemo(String code) {
-    _codeController.text = code;
-    setState(() => _errorMessage = null);
-  }
-
   void _afficherAideCode() {
     showDialog(
       context: context,
@@ -74,7 +69,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Votre code d'accès unique à 8 caractères (ex: K7B9-4X2M) vous est remis lors de votre inscription par le Directeur Général ou la Secrétaire de votre auto-école.",
+              "Votre code d'accès unique à 8 caractères (ex: XXXX-XXXX) vous est remis lors de votre inscription par le Directeur Général ou la Secrétaire de l'auto-école.",
               style: TextStyle(fontSize: 14, height: 1.4, color: Color(0xFF334155)),
             ),
             SizedBox(height: 12),
@@ -105,7 +100,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo officiel AutoÉcole Pro
+                // Logo Auto-École Saint Edmond
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
@@ -130,20 +125,12 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                 const SizedBox(height: 20),
 
                 const Text(
-                  'AutoÉcole Pro Candidat',
+                  'Auto-École Saint Edmond',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Espace Élève • Suivi & Révision',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF94A3B8),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -198,7 +185,7 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Input avec formatage majuscule & espacement
+                      // Input code avec formatage automatique
                       TextField(
                         controller: _codeController,
                         style: const TextStyle(
@@ -303,69 +290,11 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Exemples de codes pour démonstration rapide
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.5)),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Codes de démonstration (cliquez pour tester) :',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _buildCodeChip('K7B9-4X2M', 'Mawuli (Admis)'),
-                          _buildCodeChip('A9X2-5M8K', 'Afi (En cours)'),
-                          _buildCodeChip('M4P7-9T2B', 'Yao (Permis C)'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Note sécurité
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shield_outlined, size: 14, color: Color(0xFF10B981)),
-                    SizedBox(width: 6),
-                    Text(
-                      'Données sécurisées • Consultation élève en direct',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildCodeChip(String code, String label) {
-    return ActionChip(
-      backgroundColor: const Color(0xFF0F172A),
-      side: const BorderSide(color: Color(0xFF475569)),
-      label: Text(
-        '$code ($label)',
-        style: const TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
-      ),
-      onPressed: () => _remplirCodeDemo(code),
     );
   }
 }
