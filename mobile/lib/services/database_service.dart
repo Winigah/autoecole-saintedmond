@@ -159,6 +159,25 @@ class DatabaseService {
     _syncCandidatToSupabase(c);
   }
 
+  /// Version async pour attendre la sauvegarde + sync cloud avant de retourner
+  Future<void> addCandidatAsync(Candidat c, {int? premierVersement}) async {
+    _candidats.insert(0, c);
+    if (premierVersement != null && premierVersement > 0) {
+      final r = Recette(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        intitule: 'Premier versement - ${c.nom} ${c.prenom}',
+        montant: premierVersement,
+        date: c.dateInscription,
+        annexe: c.annexe,
+        candidatId: c.id,
+      );
+      _recettes.insert(0, r);
+      await _syncRecetteToSupabase(r);
+    }
+    await _saveLocal();
+    await _syncCandidatToSupabase(c);
+  }
+
   List<Depense> getDepenses({String annexe = 'Toutes', bool isSecretaire = false}) {
     return _depenses.where((d) {
       final matchAnnexe = annexe == 'Toutes' || d.annexe == annexe;
