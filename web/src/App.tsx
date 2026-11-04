@@ -476,7 +476,7 @@ export default function App() {
     if (montant_paye > 0) {
       const newRec: Recette = {
         id: Date.now().toString(),
-        intitule: `Premier versement – ${nom} ${prenom}`,
+        intitule: `Premier versement - ${nom} ${prenom}`,
         montant: montant_paye,
         date: date_inscription,
         annexe,
@@ -2543,7 +2543,7 @@ export default function App() {
                   <input
                     name="adresse"
                     defaultValue={editingCandidat.adresse || ''}
-                    placeholder="Ex: Tokoin Ramco"
+                    
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"
                   />
                 </div>
@@ -2553,7 +2553,7 @@ export default function App() {
                     type="email"
                     name="email"
                     defaultValue={editingCandidat.email || ''}
-                    placeholder="candidat@email.com"
+                    
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"
                   />
                 </div>
@@ -2987,18 +2987,18 @@ export default function App() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Nom de famille</label>
-                  <input required name="nom" placeholder="Ex: KOFFI" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm uppercase" />
+                  <input required name="nom"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm uppercase" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Prénom</label>
-                  <input required name="prenom" placeholder="Ex: Mawuli" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                  <input required name="prenom"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Téléphone (Contact)</label>
-                  <input required name="contact" placeholder="90 00 00 00" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                  <input required name="contact"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Date inscription</label>
@@ -3009,11 +3009,11 @@ export default function App() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Adresse / Ville du candidat</label>
-                  <input name="adresse" placeholder="Ex: Lomé - Agoè" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                  <input name="adresse"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Email / Optionnel</label>
-                  <input type="email" name="email" placeholder="candidat@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                  <input type="email" name="email"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
                 </div>
               </div>
 
@@ -3091,12 +3091,12 @@ export default function App() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé / Motif</label>
-                <input required name="intitule" placeholder="Ex: Vidange véhicule 02" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                <input required name="intitule"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant" placeholder="Ex: 25000" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold" />
+                  <input required type="number" name="montant"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
@@ -3122,12 +3122,12 @@ export default function App() {
             <form onSubmit={handleAddRecette} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé de l'encaissement</label>
-                <input required name="intitule" placeholder="Ex: Vente livret de code" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+                <input required name="intitule"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant" placeholder="Ex: 5000" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
+                  <input required type="number" name="montant"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
@@ -3535,7 +3535,7 @@ export default function App() {
                   required
                   value={newAnnexeName}
                   onChange={(e) => setNewAnnexeName(e.target.value)}
-                  placeholder="Ex: Agbalépédogan, Bè-Kpota, Agoè Assiyéyé..."
+                  
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

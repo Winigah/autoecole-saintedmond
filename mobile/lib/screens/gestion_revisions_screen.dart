@@ -142,7 +142,6 @@ class _GestionRevisionsScreenState extends State<GestionRevisionsScreen> {
                 TextField(
                   controller: titreCtrl,
                   decoration: InputDecoration(
-                    hintText: 'Ex: Cours de Code - Priorités & Intersections',
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -180,7 +179,6 @@ class _GestionRevisionsScreenState extends State<GestionRevisionsScreen> {
                   controller: urlCtrl,
                   keyboardType: TextInputType.url,
                   decoration: InputDecoration(
-                    hintText: 'https://mon-stockage.com/cours.pdf (Drive, Cloud...)',
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -195,7 +193,6 @@ class _GestionRevisionsScreenState extends State<GestionRevisionsScreen> {
                   controller: descCtrl,
                   maxLines: 2,
                   decoration: InputDecoration(
-                    hintText: 'Ex: À lire impérativement avant l\'examen blanc de vendredi.',
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -209,7 +206,6 @@ class _GestionRevisionsScreenState extends State<GestionRevisionsScreen> {
                 TextField(
                   controller: tailleCtrl,
                   decoration: InputDecoration(
-                    hintText: 'Ex: 1.8 Mo',
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

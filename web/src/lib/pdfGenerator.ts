@@ -458,12 +458,12 @@ export const generateRecuCandidatPDF = (
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(146, 64, 14);
-    doc.text(`AVERTISSEMENT : SOLDE RESTANT DE ${formatFCFA(montantRestant)}`, pageW / 2, curY + 6.5, { align: 'center' });
+    doc.text(`RAPPEL : SOLDE RESTANT DE ${formatFCFA(montantRestant)}`, pageW / 2, curY + 6.5, { align: 'center' });
 
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(180, 83, 9);
-    doc.text('Le solde restant doit être intégralement soldé avant sa présentation à l\'examen officiel.', pageW / 2, curY + 12, { align: 'center' });
+    doc.text('Tout solde restant doit être intégralement versé avant toute réception du dossier d\'examen de permis.', pageW / 2, curY + 12, { align: 'center' });
   }
 
   curY += 22;

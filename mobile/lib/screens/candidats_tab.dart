@@ -88,10 +88,8 @@ class _CandidatsTabState extends State<CandidatsTab> {
                 ),
               );
 
-          InputDecoration inputDeco(String hint, {IconData? icon}) =>
+          InputDecoration inputDeco({IconData? icon}) =>
               InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14),
                 prefixIcon: icon != null
                     ? Icon(icon, size: 18, color: const Color(0xFF94A3B8))
                     : null,
@@ -191,7 +189,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                         TextField(
                           controller: nomController,
                           textCapitalization: TextCapitalization.characters,
-                          decoration: inputDeco('Ex: KALIBOU', icon: Icons.badge_outlined),
+                          decoration: inputDeco(icon: Icons.badge_outlined),
                         ),
                         const SizedBox(height: 14),
 
@@ -199,7 +197,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                         TextField(
                           controller: prenomController,
                           textCapitalization: TextCapitalization.words,
-                          decoration: inputDeco('Ex: Jean-Marie', icon: Icons.person_outline),
+                          decoration: inputDeco(icon: Icons.person_outline),
                         ),
                         const SizedBox(height: 14),
 
@@ -264,7 +262,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                         TextField(
                           controller: contactController,
                           keyboardType: TextInputType.phone,
-                          decoration: inputDeco('Ex: 91234567', icon: Icons.phone_outlined),
+                          decoration: inputDeco(icon: Icons.phone_outlined),
                         ),
                         const SizedBox(height: 14),
 
@@ -272,7 +270,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                         TextField(
                           controller: adresseController,
                           decoration:
-                              inputDeco('Ex: Lomé, Bè Klikamé', icon: Icons.location_on_outlined),
+                              inputDeco(icon: Icons.location_on_outlined),
                         ),
                         const SizedBox(height: 14),
 
@@ -281,7 +279,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                           controller: emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration:
-                              inputDeco('Ex: candidat@email.com', icon: Icons.email_outlined),
+                              inputDeco(icon: Icons.email_outlined),
                         ),
 
                         const SizedBox(height: 20),
@@ -351,7 +349,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                   TextField(
                                     controller: totalController,
                                     keyboardType: TextInputType.number,
-                                    decoration: inputDeco('120000',
+                                    decoration: inputDeco(
                                         icon: Icons.payments_outlined),
                                   ),
                                 ],
@@ -366,7 +364,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                   TextField(
                                     controller: payeController,
                                     keyboardType: TextInputType.number,
-                                    decoration: inputDeco('40000',
+                                    decoration: inputDeco(
                                         icon: Icons.account_balance_wallet_outlined),
                                   ),
                                 ],
@@ -573,7 +571,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
       );
 
   // ─────────────────────────────────────────────────────────
-  // DIALOGUE SUPPLÉMENT CONDUITE (inchangé, style conservé)
+  // FORMULAIRE SUPPLÉMENT CONDUITE — BOTTOM SHEET MODERNE
   // ─────────────────────────────────────────────────────────
   void _showAddSupplementConduiteDialog(Candidat c) {
     final nbSeancesController = TextEditingController(text: '4');
@@ -581,193 +579,394 @@ class _CandidatsTabState extends State<CandidatsTab> {
     final montantVerseController = TextEditingController(text: '20000');
     String selectedMotif = 'Perfectionnement créneau et manœuvres';
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+        builder: (context, setSheetState) {
+          Widget fieldLabel(String text) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+              );
+
+          InputDecoration inputDeco({IconData? icon}) => InputDecoration(
+                prefixIcon: icon != null
+                    ? Icon(icon, size: 18, color: const Color(0xFF94A3B8))
+                    : null,
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
-                child: const Icon(Icons.directions_car,
-                    color: Color(0xFFD97706), size: 22),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFD97706), width: 1.5),
+                ),
+              );
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.88,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            expand: false,
+            builder: (_, scrollController) => Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Séances Supplémentaires',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('Ajouter des heures de conduite',
-                        style: TextStyle(
-                            fontSize: 11, color: Color(0xFF64748B))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${c.nom} ${c.prenom}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13)),
-                      Text('Cat. ${c.categorie}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2563EB),
-                              fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Text('Nombre de séances :',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Row(
-                  children: [2, 4, 6, 10].map((preset) {
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+              child: Column(
+                children: [
+                  // Handle + En-tête
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          onPressed: () {
-                            setDialogState(() {
-                              nbSeancesController.text = preset.toString();
-                              final total = preset * 5000;
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.directions_car,
+                                  color: Color(0xFFD97706), size: 22),
+                            ),
+                            const SizedBox(width: 12),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Séances Supplémentaires',
+                                  style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A)),
+                                ),
+                                Text(
+                                  'Ajout d\'heures de conduite',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Color(0xFF64748B)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(color: Color(0xFFE2E8F0)),
+                      ],
+                    ),
+                  ),
+
+                  // Contenu scrollable
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      children: [
+                        // Candidat concerné
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: const Color(0xFF2563EB),
+                                child: Text(
+                                  c.prenom.isNotEmpty ? c.prenom[0].toUpperCase() : 'C',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${c.nom} ${c.prenom}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Color(0xFF0F172A)),
+                                    ),
+                                    Text(
+                                      'Contact : ${c.contact}',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF64748B)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Cat. ${c.categorie}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
+                                      fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Section Séances
+                        _sectionTitle('🚗 Heures de Conduite'),
+                        const SizedBox(height: 10),
+
+                        fieldLabel('Raccourcis rapides :'),
+                        Row(
+                          children: [2, 4, 6, 10].map((preset) {
+                            return Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 3.0),
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 10),
+                                    backgroundColor:
+                                        nbSeancesController.text == preset.toString()
+                                            ? const Color(0xFFFEF3C7)
+                                            : Colors.transparent,
+                                    side: BorderSide(
+                                      color: nbSeancesController.text ==
+                                              preset.toString()
+                                          ? const Color(0xFFD97706)
+                                          : const Color(0xFFCBD5E1),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: () {
+                                    setSheetState(() {
+                                      nbSeancesController.text = preset.toString();
+                                      final total = preset * 5000;
+                                      montantTotalController.text =
+                                          total.toString();
+                                      montantVerseController.text =
+                                          total.toString();
+                                    });
+                                  },
+                                  child: Text('+$preset',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: nbSeancesController.text ==
+                                                  preset.toString()
+                                              ? const Color(0xFFB45309)
+                                              : const Color(0xFF475569))),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 14),
+
+                        fieldLabel('Nombre total de séances supplémentaires :'),
+                        TextField(
+                          controller: nbSeancesController,
+                          keyboardType: TextInputType.number,
+                          decoration: inputDeco(icon: Icons.add_circle_outline),
+                          onChanged: (val) {
+                            final nb = int.tryParse(val) ?? 0;
+                            setSheetState(() {
+                              final total = nb * 5000;
                               montantTotalController.text = total.toString();
                               montantVerseController.text = total.toString();
                             });
                           },
-                          child: Text('+$preset',
-                              style: const TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nbSeancesController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Séances à ajouter', isDense: true),
-                  onChanged: (val) {
-                    final nb = int.tryParse(val) ?? 0;
-                    setDialogState(() {
-                      final total = nb * 5000;
-                      montantTotalController.text = total.toString();
-                      montantVerseController.text = total.toString();
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: montantTotalController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Montant Total Supplément (FCFA)',
-                      isDense: true),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: montantVerseController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Montant Versé ce jour (FCFA)',
-                      isDense: true),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedMotif,
-                  decoration: const InputDecoration(
-                      labelText: 'Motif', isDense: true),
-                  items: [
-                    'Perfectionnement créneau et manœuvres',
-                    'Heures supplémentaires post-ajournement',
-                    'Renforcement circulation et route',
-                    'À la demande du candidat',
-                  ]
-                      .map((m) => DropdownMenuItem(
-                          value: m,
-                          child: Text(m,
-                              style: const TextStyle(fontSize: 12))))
-                      .toList(),
-                  onChanged: (v) =>
-                      setDialogState(() => selectedMotif = v!),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD97706),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                final nb = int.tryParse(nbSeancesController.text) ?? 0;
-                final total =
-                    int.tryParse(montantTotalController.text) ?? 0;
-                final paye =
-                    int.tryParse(montantVerseController.text) ?? 0;
+                        const SizedBox(height: 14),
 
-                if (nb <= 0 || total <= 0) return;
+                        fieldLabel('Motif du perfectionnement :'),
+                        _styledDropdown<String>(
+                          value: selectedMotif,
+                          items: [
+                            'Perfectionnement créneau et manœuvres',
+                            'Heures supplémentaires post-ajournement',
+                            'Renforcement circulation et route',
+                            'À la demande du candidat',
+                          ]
+                              .map((m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(m,
+                                      style: const TextStyle(fontSize: 13))))
+                              .toList(),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedMotif = v!),
+                        ),
 
-                DatabaseService.instance.addSupplementConduite(
-                  candidatId: c.id,
-                  nbSeances: nb,
-                  montantSupplement: total,
-                  montantVerse: paye,
-                  motif: selectedMotif,
-                );
+                        const SizedBox(height: 20),
+                        // Section Règlement
+                        _sectionTitle('💳 Règlement'),
+                        const SizedBox(height: 10),
 
-                Navigator.pop(ctx);
-                setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        '+$nb séances de conduite enregistrées pour ${c.nom} ${c.prenom}'),
-                    backgroundColor: const Color(0xFF059669),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  fieldLabel('Montant Total (FCFA)'),
+                                  TextField(
+                                    controller: montantTotalController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: inputDeco(
+                                        icon: Icons.payments_outlined),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  fieldLabel('Montant Versé ce jour'),
+                                  TextField(
+                                    controller: montantVerseController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: inputDeco(
+                                        icon: Icons.account_balance_wallet_outlined),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 28),
+                        // Boutons validation
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14)),
+                                  side: const BorderSide(
+                                      color: Color(0xFFCBD5E1)),
+                                ),
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Annuler',
+                                    style: TextStyle(
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD97706),
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  final nb = int.tryParse(
+                                          nbSeancesController.text) ??
+                                      0;
+                                  final total = int.tryParse(
+                                          montantTotalController.text) ??
+                                      0;
+                                  final paye = int.tryParse(
+                                          montantVerseController.text) ??
+                                      0;
+
+                                  if (nb <= 0 || total <= 0) return;
+
+                                  DatabaseService.instance.addSupplementConduite(
+                                    candidatId: c.id,
+                                    nbSeances: nb,
+                                    montantSupplement: total,
+                                    montantVerse: paye,
+                                    motif: selectedMotif,
+                                  );
+
+                                  Navigator.pop(ctx);
+                                  setState(() {});
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '✅ +$nb séances enregistrées pour ${c.nom} ${c.prenom}'),
+                                      backgroundColor: const Color(0xFF059669),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.check_circle_outline, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Valider Supplément',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-              child: const Text('Valider Supplément'),
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

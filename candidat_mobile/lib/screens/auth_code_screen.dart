@@ -208,11 +208,6 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                           _CodeInputFormatter(),
                         ],
                         decoration: InputDecoration(
-                          hintText: 'XXXX-XXXX',
-                          hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            letterSpacing: 4,
-                          ),
                           filled: true,
                           fillColor: const Color(0xFF0F172A),
                           contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

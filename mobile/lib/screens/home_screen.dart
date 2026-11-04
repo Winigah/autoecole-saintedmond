@@ -132,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: newPwdCtrl,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: 'Min. 4 caractères',
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     filled: true,

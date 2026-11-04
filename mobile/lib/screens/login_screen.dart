@@ -182,9 +182,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          hintText: 'Ex: DG Saint Edmond ou Secretaire Saint Edmond',
-                          hintStyle: const TextStyle(
-                              fontSize: 12, color: Color(0xFF94A3B8)),
                           prefixIcon: const Icon(Icons.person_outline,
                               size: 20, color: Color(0xFF64748B)),
                           filled: true,
@@ -211,9 +208,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                          hintText: '••••••••',
-                          hintStyle: const TextStyle(
-                              fontSize: 14, color: Color(0xFF94A3B8)),
                           prefixIcon: const Icon(Icons.lock_outline,
                               size: 20, color: Color(0xFF64748B)),
                           filled: true,
