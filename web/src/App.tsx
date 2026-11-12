@@ -528,10 +528,25 @@ export default function App() {
     const email = (formData.get('email') as string)?.trim() || undefined;
     const duree_formation_mois = Number(formData.get('duree_formation_mois')) || 3;
     const type_formation = (formData.get('type_formation') as any) || 'COMPLETE';
-    const statut = (formData.get('statut') as any) || 'INSCRIT';
+    let statut = (formData.get('statut') as any) || 'INSCRIT';
     const nb_conduites_prevues = Number(formData.get('nb_conduites_prevues')) || 0;
     const nb_conduites_effectuees = Number(formData.get('nb_conduites_effectuees')) || 0;
     const code_acces = (formData.get('code_acces') as string)?.trim() || editingCandidat.code_acces;
+    const statut_examen_code = (formData.get('statut_examen_code') as any) || editingCandidat.statut_examen_code || 'NON_PROGRAMME';
+    const date_examen_code = (formData.get('date_examen_code') as string)?.trim() || undefined;
+    const statut_examen_conduite = (formData.get('statut_examen_conduite') as any) || editingCandidat.statut_examen_conduite || 'NON_PROGRAMME';
+    const date_examen_conduite = (formData.get('date_examen_conduite') as string)?.trim() || undefined;
+
+    // Harmonisation automatique du statut global
+    if (statut_examen_code === 'ADMIS' && (type_formation === 'CODE_SEUL' || statut_examen_conduite === 'ADMIS')) {
+      statut = 'ADMIS';
+    } else if (statut_examen_conduite === 'ADMIS' && type_formation === 'CONDUITE_SEULE') {
+      statut = 'ADMIS';
+    } else if (statut_examen_code === 'AJOURNE' || statut_examen_conduite === 'AJOURNE') {
+      statut = 'NON_ADMIS';
+    } else if (statut_examen_code === 'NON_PROGRAMME' && statut_examen_conduite === 'NON_PROGRAMME' && statut !== 'ADMIS' && statut !== 'NON_ADMIS') {
+      statut = 'INSCRIT';
+    }
 
     if (!nom || !prenom || !contact) {
       alert('Veuillez renseigner le nom, prénom et contact.');
@@ -556,6 +571,10 @@ export default function App() {
           duree_formation_mois,
           type_formation,
           statut,
+          statut_examen_code,
+          date_examen_code,
+          statut_examen_conduite,
+          date_examen_conduite,
           nb_conduites_prevues,
           nb_conduites_effectuees,
           code_acces,
