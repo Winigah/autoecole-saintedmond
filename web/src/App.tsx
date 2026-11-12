@@ -330,42 +330,6 @@ export default function App() {
     return `Session ${mois[now.getMonth()]} ${now.getFullYear()} - Lomé`;
   });
 
-  const handleUpdateCandidateExamStatus = (
-    candidatId: string,
-    field: 'CODE' | 'CONDUITE',
-    newStatus: 'NON_PROGRAMME' | 'PROGRAMME' | 'ADMIS' | 'AJOURNE'
-  ) => {
-    setCandidats(prev => {
-      const updated = prev.map(c => {
-        if (c.id !== candidatId) return c;
-        const cand = { ...c };
-        if (field === 'CODE') {
-          cand.statut_examen_code = newStatus;
-          if (newStatus === 'ADMIS' && (cand.type_formation === 'CODE_SEUL' || cand.statut_examen_conduite === 'ADMIS')) {
-            cand.statut = 'ADMIS';
-          } else if (newStatus === 'AJOURNE' && cand.type_formation === 'CODE_SEUL') {
-            cand.statut = 'NON_ADMIS';
-          } else if (newStatus === 'NON_PROGRAMME' || newStatus === 'PROGRAMME') {
-            if (cand.statut !== 'ADMIS') cand.statut = 'INSCRIT';
-          }
-        } else {
-          cand.statut_examen_conduite = newStatus;
-          if (newStatus === 'ADMIS' && (cand.type_formation === 'CONDUITE_SEULE' || cand.statut_examen_code === 'ADMIS')) {
-            cand.statut = 'ADMIS';
-          } else if (newStatus === 'AJOURNE' && (cand.type_formation === 'CONDUITE_SEULE' || cand.statut_examen_code === 'ADMIS')) {
-            cand.statut = 'NON_ADMIS';
-          } else if (newStatus === 'NON_PROGRAMME' || newStatus === 'PROGRAMME') {
-            if (cand.statut !== 'ADMIS') cand.statut = 'INSCRIT';
-          }
-        }
-        syncService.syncCandidat(cand);
-        return cand;
-      });
-      return updated;
-    });
-    showToast('Résultat d\'examen enregistré avec succès !');
-  };
-
   // Pointages des élèves : clé composite "candidatId_date" => { heure, typeSeance }
   // Chaque date est un enregistrement indépendant - cumul automatique des séances.
   const [presencesRecords, setPresencesRecords] = useState<Record<string, {
@@ -2750,40 +2714,57 @@ export default function App() {
                         {filteredResultats.map((c) => {
                           const initiales = `${(c.nom || 'C').slice(0, 1)}${(c.prenom || 'P').slice(0, 1)}`.toUpperCase();
 
-                          // Calcul du statut global d'examen réel (JAMAIS Ajourné par défaut !)
                           const isAdmisCode = c.statut_examen_code === 'ADMIS';
                           const isAdmisConduite = c.statut_examen_conduite === 'ADMIS';
                           const isAjourneCode = c.statut_examen_code === 'AJOURNE';
                           const isAjourneConduite = c.statut_examen_conduite === 'AJOURNE';
+                          const isProgrammeCode = c.statut_examen_code === 'PROGRAMME';
+                          const isProgrammeConduite = c.statut_examen_conduite === 'PROGRAMME';
 
-                          let badgeGlobal = {
-                            label: 'En formation',
-                            classes: 'bg-slate-100 text-slate-700 border-slate-200',
+                          // Formateur date simple JJ/MM/AAAA
+                          const formatDateSimple = (dStr?: string) => {
+                            if (!dStr) return '';
+                            const parts = dStr.split('-');
+                            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                            return dStr;
+                          };
+
+                          // Date d'examen programmée prioritaire (conduite ou code)
+                          const dateProgrammeeRaw = c.date_examen_conduite || c.date_examen_code;
+                          const dateProgrammeeFormattee = formatDateSimple(dateProgrammeeRaw);
+
+                          // Calcul du résultat global :
+                          // 1. Si Admis -> Badge vert "Admis ✓"
+                          // 2. Si Ajourné -> Badge rouge "Ajourné ✗"
+                          // 3. Si Programmé -> Affiche la date programmée
+                          // 4. Si En formation -> Totalement VIDE (tiret discret)
+                          let affichageGlobal: { type: 'admis' | 'ajourne' | 'programme' | 'vide'; text: string } = {
+                            type: 'vide',
+                            text: '—'
                           };
 
                           if (c.statut === 'ADMIS' || (isAdmisCode && isAdmisConduite) || (c.type_formation === 'CODE_SEUL' && isAdmisCode) || (c.type_formation === 'CONDUITE_SEULE' && isAdmisConduite)) {
-                            badgeGlobal = {
-                              label: 'Admis au Permis ✓',
-                              classes: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold',
-                            };
+                            affichageGlobal = { type: 'admis', text: 'Admis ✓' };
                           } else if (isAjourneCode || isAjourneConduite || c.statut === 'NON_ADMIS') {
-                            badgeGlobal = {
-                              label: 'Ajourné ✗',
-                              classes: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+                            affichageGlobal = { type: 'ajourne', text: 'Ajourné ✗' };
+                          } else if (isProgrammeCode || isProgrammeConduite) {
+                            affichageGlobal = {
+                              type: 'programme',
+                              text: dateProgrammeeFormattee ? `Prévu le ${dateProgrammeeFormattee}` : 'Programmé'
                             };
-                          } else if (c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') {
-                            badgeGlobal = {
-                              label: 'Convoqué Examen',
-                              classes: 'bg-blue-100 text-blue-800 border-blue-300 font-semibold',
-                            };
+                          } else {
+                            // En formation : reste vide !
+                            affichageGlobal = { type: 'vide', text: '—' };
                           }
 
                           // Message WhatsApp pré-rempli
-                          const msgResultat = badgeGlobal.label.includes('Admis')
+                          const msgResultat = affichageGlobal.type === 'admis'
                             ? `Félicitations ${c.prenom} ! L'Auto-École SAINT EDMOND vous informe que vous avez réussi votre examen du Permis ${c.categorie || 'B'}. Présentez-vous au secrétariat pour les formalités.`
-                            : badgeGlobal.label.includes('Ajourné')
-                            ? `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que vous n'avez pas validé votre dernière épreuve d'examen. Merci de contacter le secrétariat pour vous inscrire à la prochaine session de rattrapage.`
-                            : `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que vous êtes convoqué(e) pour l'examen du Permis ${c.categorie || 'B'} (${sessionExamNom}). Merci de vous rapprocher du secrétariat.`;
+                            : affichageGlobal.type === 'ajourne'
+                            ? `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que votre examen n'a pas été validé. Contactez le secrétariat pour vous inscrire à la prochaine session de rattrapage.`
+                            : affichageGlobal.type === 'programme'
+                            ? `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que vous êtes convoqué(e) à l'examen du Permis ${c.categorie || 'B'}${dateProgrammeeFormattee ? ` le ${dateProgrammeeFormattee}` : ''}. Merci de contacter le secrétariat.`
+                            : `Bonjour ${c.prenom}, point sur votre formation Permis ${c.categorie || 'B'} à l'Auto-École SAINT EDMOND. N'hésitez pas à contacter le secrétariat.`;
 
                           return (
                             <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
@@ -2818,94 +2799,121 @@ export default function App() {
                                 </span>
                               </td>
 
-                              {/* Colonne 3 : Épreuve Code de la Route (Modifiable directement en 1 clic) */}
+                              {/* Colonne 3 : Épreuve Code de la Route (Affichage lecture seule) */}
                               {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CODE') && (
                                 <td className="px-4 py-3.5 whitespace-nowrap">
                                   {c.type_formation === 'CONDUITE_SEULE' ? (
-                                    <span className="text-[11px] text-slate-400 font-medium italic">Déjà acquis</span>
+                                    <span className="text-[11px] text-slate-400 font-medium italic">Non concerné</span>
+                                  ) : isAdmisCode ? (
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-lg">
+                                      Admis ✓
+                                    </span>
+                                  ) : isAjourneCode ? (
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-lg">
+                                      Ajourné ✗
+                                    </span>
+                                  ) : isProgrammeCode ? (
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-800 bg-blue-50 border border-blue-300 px-2.5 py-1 rounded-lg">
+                                        Programmé
+                                      </span>
+                                      {c.date_examen_code && (
+                                        <span className="block text-[10px] text-blue-600 font-medium">
+                                          le {formatDateSimple(c.date_examen_code)}
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : (
-                                    <select
-                                      value={c.statut_examen_code || 'NON_PROGRAMME'}
-                                      onChange={(e) => handleUpdateCandidateExamStatus(c.id, 'CODE', e.target.value as any)}
-                                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border transition cursor-pointer focus:outline-none ${
-                                        c.statut_examen_code === 'ADMIS'
-                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                          : c.statut_examen_code === 'AJOURNE'
-                                          ? 'bg-rose-50 text-rose-800 border-rose-300'
-                                          : c.statut_examen_code === 'PROGRAMME'
-                                          ? 'bg-blue-50 text-blue-800 border-blue-300'
-                                          : 'bg-slate-50 text-slate-600 border-slate-200'
-                                      }`}
-                                    >
-                                      <option value="NON_PROGRAMME">En formation</option>
-                                      <option value="PROGRAMME">Programmé</option>
-                                      <option value="ADMIS">Admis ✓</option>
-                                      <option value="AJOURNE">Ajourné ✗</option>
-                                    </select>
+                                    <span className="text-xs text-slate-400 font-medium">—</span>
                                   )}
                                 </td>
                               )}
 
-                              {/* Colonne 4 : Épreuve Conduite (Modifiable directement en 1 clic) */}
+                              {/* Colonne 4 : Épreuve Conduite (Affichage lecture seule) */}
                               {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CONDUITE') && (
                                 <td className="px-4 py-3.5 whitespace-nowrap">
                                   {c.type_formation === 'CODE_SEUL' ? (
                                     <span className="text-[11px] text-slate-400 font-medium italic">Non concerné</span>
+                                  ) : isAdmisConduite ? (
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-lg">
+                                      Admis ✓
+                                    </span>
+                                  ) : isAjourneConduite ? (
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-lg">
+                                      Ajourné ✗
+                                    </span>
+                                  ) : isProgrammeConduite ? (
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-800 bg-blue-50 border border-blue-300 px-2.5 py-1 rounded-lg">
+                                        Programmé
+                                      </span>
+                                      {c.date_examen_conduite && (
+                                        <span className="block text-[10px] text-blue-600 font-medium">
+                                          le {formatDateSimple(c.date_examen_conduite)}
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : (
-                                    <select
-                                      value={c.statut_examen_conduite || 'NON_PROGRAMME'}
-                                      onChange={(e) => handleUpdateCandidateExamStatus(c.id, 'CONDUITE', e.target.value as any)}
-                                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border transition cursor-pointer focus:outline-none ${
-                                        c.statut_examen_conduite === 'ADMIS'
-                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                          : c.statut_examen_conduite === 'AJOURNE'
-                                          ? 'bg-rose-50 text-rose-800 border-rose-300'
-                                          : c.statut_examen_conduite === 'PROGRAMME'
-                                          ? 'bg-blue-50 text-blue-800 border-blue-300'
-                                          : 'bg-slate-50 text-slate-600 border-slate-200'
-                                      }`}
-                                    >
-                                      <option value="NON_PROGRAMME">En formation</option>
-                                      <option value="PROGRAMME">Programmé</option>
-                                      <option value="ADMIS">Admis ✓</option>
-                                      <option value="AJOURNE">Ajourné ✗</option>
-                                    </select>
+                                    <span className="text-xs text-slate-400 font-medium">—</span>
                                   )}
                                 </td>
                               )}
 
                               {/* Colonne 5 : Résultat Global Réel */}
                               <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                                <span className={`inline-flex px-3 py-1 rounded-full text-xs border ${badgeGlobal.classes}`}>
-                                  {badgeGlobal.label}
-                                </span>
+                                {affichageGlobal.type === 'admis' && (
+                                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    {affichageGlobal.text}
+                                  </span>
+                                )}
+                                {affichageGlobal.type === 'ajourne' && (
+                                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                    {affichageGlobal.text}
+                                  </span>
+                                )}
+                                {affichageGlobal.type === 'programme' && (
+                                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                    {affichageGlobal.text}
+                                  </span>
+                                )}
+                                {affichageGlobal.type === 'vide' && (
+                                  <span className="text-slate-300 font-bold">—</span>
+                                )}
                               </td>
 
-                              {/* Colonne 6 : Action WhatsApp direct */}
+                              {/* Colonne 6 : Actions (Modifier fiche + WhatsApp) */}
                               <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                                <a
-                                  href={`https://wa.me/228${(c.contact || '').replace(/\s+/g, '')}?text=${encodeURIComponent(msgResultat)}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 transition shadow-2xs cursor-pointer"
-                                  title="Notifier le candidat sur WhatsApp"
-                                >
-                                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                                  <span>WhatsApp</span>
-                                </a>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingCandidat(c);
+                                      setEditCandSexe(c.sexe);
+                                      setEditCandPhoto(c.photo_url);
+                                      setModalType('edit_candidat');
+                                    }}
+                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                                    title="Modifier la fiche et le statut d'examen de ce candidat"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                                    <span>Modifier</span>
+                                  </button>
+
+                                  <a
+                                    href={`https://wa.me/228${(c.contact || '').replace(/\s+/g, '')}?text=${encodeURIComponent(msgResultat)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-xl border bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 transition shadow-2xs cursor-pointer"
+                                    title="Notifier le candidat sur WhatsApp"
+                                  >
+                                    <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>WhatsApp</span>
+                                  </a>
+                                </div>
                               </td>
                             </tr>
                           );
-                        })}
-
-                        {filteredResultats.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="text-center py-10 text-slate-400 text-xs">
-                              Aucun candidat trouvé pour cette sélection.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
+                        })}</tbody>
                     </table>
                   </div>
                 </div>
@@ -3144,6 +3152,66 @@ export default function App() {
                         <option key={m} value={m}>{m} mois</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                {/* Programmation & Statuts des Examens (Code & Conduite) */}
+                <div className="pt-3 border-t border-indigo-200/60 space-y-3">
+                  <span className="text-xs font-bold text-indigo-950 block">Détails des Épreuves d'Examen</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Épreuve Code */}
+                    <div className="bg-white/80 border border-indigo-200/80 rounded-xl p-3 space-y-2">
+                      <span className="text-xs font-bold text-slate-800 block">Épreuve Code de la Route</span>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Statut Code</label>
+                        <select
+                          name="statut_examen_code"
+                          defaultValue={editingCandidat.statut_examen_code || 'NON_PROGRAMME'}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
+                        >
+                          <option value="NON_PROGRAMME">Non programmé (En formation)</option>
+                          <option value="PROGRAMME">Programmé</option>
+                          <option value="ADMIS">Admis ✓</option>
+                          <option value="AJOURNE">Ajourné ✗</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Date d'examen Code</label>
+                        <input
+                          type="date"
+                          name="date_examen_code"
+                          defaultValue={editingCandidat.date_examen_code || ''}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Épreuve Conduite */}
+                    <div className="bg-white/80 border border-indigo-200/80 rounded-xl p-3 space-y-2">
+                      <span className="text-xs font-bold text-slate-800 block">Épreuve Conduite</span>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Statut Conduite</label>
+                        <select
+                          name="statut_examen_conduite"
+                          defaultValue={editingCandidat.statut_examen_conduite || 'NON_PROGRAMME'}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
+                        >
+                          <option value="NON_PROGRAMME">Non programmé (En formation)</option>
+                          <option value="PROGRAMME">Programmé</option>
+                          <option value="ADMIS">Admis ✓</option>
+                          <option value="AJOURNE">Ajourné ✗</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Date d'examen Conduite</label>
+                        <input
+                          type="date"
+                          name="date_examen_conduite"
+                          defaultValue={editingCandidat.date_examen_conduite || ''}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 cursor-pointer"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
