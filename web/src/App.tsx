@@ -891,8 +891,9 @@ export default function App() {
                 <h1 className="font-extrabold text-[15px] leading-snug text-white tracking-tight">
                   Auto-École Saint Edmond
                 </h1>
-                <p className="text-[10px] text-amber-400 font-bold tracking-wide uppercase mt-0.5">
-                  Agrément N° 036/MTRAF/META
+                <p className="text-[11px] text-slate-400 font-medium tracking-wide flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                  <span className="truncate">Agrément N° 036/MTRAF/META</span>
                 </p>
               </div>
             </div>
@@ -902,8 +903,8 @@ export default function App() {
           </div>
 
           {/* User Profile Card */}
-          <div className="mt-5 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
-            <div className="flex items-center gap-3">
+          <div className="mt-5 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               {/* Avatar avec upload depuis la galerie */}
               <div className="relative group shrink-0">
                 <input
@@ -927,50 +928,53 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => fileInputUserPhotoRef.current?.click()}
-                  title="Changer ma photo de profil (depuis la galerie)"
+                  title="Changer ma photo de profil"
                   className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-md transition cursor-pointer border border-slate-900"
                 >
                   <Camera className="w-2.5 h-2.5" />
                 </button>
               </div>
 
-              <div className="overflow-hidden flex-1">
-                <p className="text-sm font-medium truncate">{directorName}</p>
+              <div className="overflow-hidden min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white truncate" title={directorName}>{directorName}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`inline-block w-2 h-2 rounded-full ${role === 'DG' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-                  <span className="text-xs text-slate-400 font-medium">{role === 'DG' ? 'Directeur Général' : 'Secrétariat'}</span>
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${role === 'DG' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                  <span className="text-xs text-slate-400 font-medium truncate">{role === 'DG' ? 'Directeur Général' : 'Secrétariat'}</span>
                 </div>
               </div>
             </div>
 
-            {userPhoto && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              {userPhoto && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserPhoto(null);
+                    localStorage.removeItem(`autoecole_user_photo_${role}`);
+                    showToast('Photo supprimée.');
+                  }}
+                  title="Supprimer la photo"
+                  className="w-8 h-8 rounded-lg bg-slate-900/60 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700/50 flex items-center justify-center transition cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
-                  setUserPhoto(null);
-                  localStorage.removeItem(`autoecole_user_photo_${role}`);
-                  showToast('Photo supprimée.');
+                  setPasswordError(null);
+                  setOldPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  setPasswordModalOpen(true);
                 }}
-                className="mt-1 text-[10px] text-slate-400 hover:text-rose-400 transition underline text-left px-1"
+                title="Modifier mon mot de passe"
+                className="w-8 h-8 rounded-lg bg-slate-900/80 hover:bg-slate-700 text-slate-300 hover:text-amber-400 border border-slate-700/60 flex items-center justify-center transition cursor-pointer shadow-xs"
               >
-                Supprimer ma photo
+                <KeyRound className="w-4 h-4 text-amber-400" />
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setPasswordError(null);
-                setOldPassword('');
-                setNewPassword('');
-                setConfirmPassword('');
-                setPasswordModalOpen(true);
-              }}
-              className="mt-2.5 w-full py-1.5 px-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-700/80 text-[11px] font-semibold text-slate-300 hover:text-white border border-slate-700/60 transition flex items-center justify-center gap-1.5"
-            >
-              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              <span>Modifier mon mot de passe</span>
-            </button>
+            </div>
           </div>
 
 
