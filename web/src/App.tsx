@@ -320,6 +320,52 @@ export default function App() {
   const [presenceSearch, setPresenceSearch] = useState('');
   const [presenceAnnexe, setPresenceAnnexe] = useState('Toutes');
 
+  // États onglet Résultats d'Examen
+  const [resultatEpreuve, setResultatEpreuve] = useState<'TOUS' | 'CODE' | 'CONDUITE'>('TOUS');
+  const [resultatStatutFilter, setResultatStatutFilter] = useState<'TOUS' | 'ADMIS' | 'AJOURNE' | 'PROGRAMME' | 'NON_PROGRAMME'>('TOUS');
+  const [resultatSearch, setResultatSearch] = useState('');
+  const [sessionExamNom, setSessionExamNom] = useState(() => {
+    const mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const now = new Date();
+    return `Session ${mois[now.getMonth()]} ${now.getFullYear()} - Lomé`;
+  });
+
+  const handleUpdateCandidateExamStatus = (
+    candidatId: string,
+    field: 'CODE' | 'CONDUITE',
+    newStatus: 'NON_PROGRAMME' | 'PROGRAMME' | 'ADMIS' | 'AJOURNE'
+  ) => {
+    setCandidats(prev => {
+      const updated = prev.map(c => {
+        if (c.id !== candidatId) return c;
+        const cand = { ...c };
+        if (field === 'CODE') {
+          cand.statut_examen_code = newStatus;
+          if (newStatus === 'ADMIS' && (cand.type_formation === 'CODE_SEUL' || cand.statut_examen_conduite === 'ADMIS')) {
+            cand.statut = 'ADMIS';
+          } else if (newStatus === 'AJOURNE' && cand.type_formation === 'CODE_SEUL') {
+            cand.statut = 'NON_ADMIS';
+          } else if (newStatus === 'NON_PROGRAMME' || newStatus === 'PROGRAMME') {
+            if (cand.statut !== 'ADMIS') cand.statut = 'INSCRIT';
+          }
+        } else {
+          cand.statut_examen_conduite = newStatus;
+          if (newStatus === 'ADMIS' && (cand.type_formation === 'CONDUITE_SEULE' || cand.statut_examen_code === 'ADMIS')) {
+            cand.statut = 'ADMIS';
+          } else if (newStatus === 'AJOURNE' && (cand.type_formation === 'CONDUITE_SEULE' || cand.statut_examen_code === 'ADMIS')) {
+            cand.statut = 'NON_ADMIS';
+          } else if (newStatus === 'NON_PROGRAMME' || newStatus === 'PROGRAMME') {
+            if (cand.statut !== 'ADMIS') cand.statut = 'INSCRIT';
+          }
+        }
+        syncService.syncCandidat(cand);
+        return cand;
+      });
+      return updated;
+    });
+    showToast('Résultat d\'examen enregistré avec succès !');
+  };
+
   // Pointages des élèves : clé composite "candidatId_date" => { heure, typeSeance }
   // Chaque date est un enregistrement indépendant - cumul automatique des séances.
   const [presencesRecords, setPresencesRecords] = useState<Record<string, {
@@ -2448,59 +2494,425 @@ export default function App() {
           })()}
 
           {/* ================= RÉSULTATS ================= */}
-          {activeTab === 'Résultats' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800">Résultats d'Examen Permis</h3>
-                  <p className="text-xs text-slate-500">Session Septembre 2026 - Lomé</p>
+          {activeTab === 'Résultats' && (() => {
+            const effectiveAnnexe = annexeFilter !== 'Toutes' ? annexeFilter : 'Toutes';
+
+            // Filtrage des candidats selon épreuve, statut, annexe et recherche
+            const filteredResultats = candidats.filter(c => {
+              const matchAnnexe = effectiveAnnexe === 'Toutes' || c.annexe === effectiveAnnexe;
+              const matchSearch = `${c.nom || ''} ${c.prenom || ''} ${c.contact || ''}`.toLowerCase().includes(resultatSearch.toLowerCase());
+
+              // Filtre selon l'épreuve active
+              if (resultatEpreuve === 'CODE' && c.type_formation === 'CONDUITE_SEULE') return false;
+              if (resultatEpreuve === 'CONDUITE' && c.type_formation === 'CODE_SEUL') return false;
+
+              // Statut d'examen de référence selon l'épreuve choisie
+              let refStatut: 'NON_PROGRAMME' | 'PROGRAMME' | 'ADMIS' | 'AJOURNE' = 'NON_PROGRAMME';
+              if (resultatEpreuve === 'CODE') {
+                refStatut = c.statut_examen_code || 'NON_PROGRAMME';
+              } else if (resultatEpreuve === 'CONDUITE') {
+                refStatut = c.statut_examen_conduite || 'NON_PROGRAMME';
+              } else {
+                // TOUS : Admis si les deux épreuves requises sont ADMIS, Ajourné si l'une est AJOURNE, etc.
+                if (c.statut === 'ADMIS' || (c.statut_examen_code === 'ADMIS' && c.statut_examen_conduite === 'ADMIS')) {
+                  refStatut = 'ADMIS';
+                } else if (c.statut_examen_code === 'AJOURNE' || c.statut_examen_conduite === 'AJOURNE' || c.statut === 'NON_ADMIS') {
+                  refStatut = 'AJOURNE';
+                } else if (c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') {
+                  refStatut = 'PROGRAMME';
+                } else {
+                  refStatut = 'NON_PROGRAMME';
+                }
+              }
+
+              const matchStatut = resultatStatutFilter === 'TOUS' || refStatut === resultatStatutFilter;
+
+              return matchAnnexe && matchSearch && matchStatut;
+            });
+
+            // Statistiques pour les compteurs
+            const countAdmis = candidats.filter(c => {
+              if (resultatEpreuve === 'CODE') return c.statut_examen_code === 'ADMIS';
+              if (resultatEpreuve === 'CONDUITE') return c.statut_examen_conduite === 'ADMIS';
+              return c.statut === 'ADMIS' || (c.statut_examen_code === 'ADMIS' && c.statut_examen_conduite === 'ADMIS');
+            }).length;
+
+            const countAjournes = candidats.filter(c => {
+              if (resultatEpreuve === 'CODE') return c.statut_examen_code === 'AJOURNE';
+              if (resultatEpreuve === 'CONDUITE') return c.statut_examen_conduite === 'AJOURNE';
+              return c.statut_examen_code === 'AJOURNE' || c.statut_examen_conduite === 'AJOURNE' || c.statut === 'NON_ADMIS';
+            }).length;
+
+            const countProgrammes = candidats.filter(c => {
+              if (resultatEpreuve === 'CODE') return c.statut_examen_code === 'PROGRAMME';
+              if (resultatEpreuve === 'CONDUITE') return c.statut_examen_conduite === 'PROGRAMME';
+              return (c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') && c.statut !== 'ADMIS' && c.statut !== 'NON_ADMIS';
+            }).length;
+
+            const countEnCours = candidats.length - countAdmis - countAjournes - countProgrammes;
+
+            return (
+              <div className="space-y-4">
+                {/* 1. EN-TÊTE DE SECTION */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <Award className="w-5 h-5 text-amber-500" />
+                      <span>Résultats d'Examen Permis</span>
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-500">Session active :</span>
+                      <input
+                        type="text"
+                        value={sessionExamNom}
+                        onChange={(e) => setSessionExamNom(e.target.value)}
+                        className="bg-transparent border-b border-dashed border-slate-300 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 px-1 py-0.5"
+                        placeholder="Ex: Session Novembre 2026 - Lomé"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setModalData({ statut: 'ADMIS' });
+                      setModalType('broadcast_msg');
+                    }}
+                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition shrink-0 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Diffuser Résultats (SMS/WhatsApp)</span>
+                  </button>
                 </div>
-                <button
-                  onClick={() => {
-                    setModalData({ statut: 'ADMIS' });
-                    setModalType('broadcast_msg');
-                  }}
-                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Diffuser Résultats (SMS/WhatsApp)</span>
-                </button>
-              </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-200">
-                    <tr>
-                      <th className="px-5 py-3.5">Candidat</th>
-                      <th className="px-4 py-3.5">Épreuve</th>
-                      <th className="px-4 py-3.5">Session</th>
-                      <th className="px-4 py-3.5 text-right">Résultat</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {candidats.slice(0, 6).map((c, i) => (
-                      <tr key={c.id} className="hover:bg-slate-50/80 transition">
-                        <td className="px-5 py-3.5 font-bold text-slate-800">{c.nom} {c.prenom}</td>
-                        <td className="px-4 py-3.5 text-slate-600">{i % 2 === 0 ? 'Code de la Route' : 'Conduite & Manœuvres'}</td>
-                        <td className="px-4 py-3.5 text-slate-600">Session Septembre 2026</td>
-                        <td className="px-4 py-3.5 text-right">
-                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            c.statut === 'ADMIS' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {c.statut === 'ADMIS' ? 'Admis' : 'Ajourné'}
-                          </span>
-                        </td>
-                      </tr>
+                {/* 2. BARRE DE FILTRES : ONGLETS DEMANDÉS + STATUT + RECHERCHE */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* ONGLETS EXACTS DEMANDÉS : Tous | Code de la Route | Conduite */}
+                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setResultatEpreuve('TOUS')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          resultatEpreuve === 'TOUS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Tous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setResultatEpreuve('CODE')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                          resultatEpreuve === 'CODE' ? 'bg-purple-600 text-white shadow-2xs' : 'text-purple-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>Code de la Route</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setResultatEpreuve('CONDUITE')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                          resultatEpreuve === 'CONDUITE' ? 'bg-blue-600 text-white shadow-2xs' : 'text-blue-700 hover:bg-blue-50'
+                        }`}
+                      >
+                        <Car className="w-3.5 h-3.5" />
+                        <span>Conduite</span>
+                      </button>
+                    </div>
+
+                    {/* Recherche Candidat */}
+                    <div className="relative min-w-[200px] max-w-xs flex-1">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Rechercher candidat par nom..."
+                        value={resultatSearch}
+                        onChange={(e) => setResultatSearch(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                      />
+                      {resultatSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setResultatSearch('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Ligne Filtre Statut */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-100 text-xs">
+                    <span className="text-slate-500 font-semibold mr-1">Filtrer par statut :</span>
+                    {[
+                      { id: 'TOUS', label: 'Tous les candidats' },
+                      { id: 'ADMIS', label: 'Admis uniquement' },
+                      { id: 'AJOURNE', label: 'Ajournés uniquement' },
+                      { id: 'PROGRAMME', label: 'Programmés pour examen' },
+                      { id: 'NON_PROGRAMME', label: 'En cours de formation' },
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setResultatStatutFilter(f.id as any)}
+                        className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer ${
+                          resultatStatutFilter === f.id
+                            ? 'bg-slate-900 text-white font-bold'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+
+                {/* 3. SYNTHÈSE DES RÉSULTATS */}
+                <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200/90 p-3 sm:px-5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs text-xs">
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500 font-medium">Total candidats :</span>
+                      <span className="font-extrabold text-slate-900 bg-slate-200/80 px-2 py-0.5 rounded-md">
+                        {candidats.length}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                        Admis :
+                      </span>
+                      <span className="font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        {countAdmis}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-rose-700 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                        Ajournés :
+                      </span>
+                      <span className="font-extrabold text-rose-800 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md">
+                        {countAjournes}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-blue-700 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                        Programmés :
+                      </span>
+                      <span className="font-extrabold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md">
+                        {countProgrammes}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-600 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-400 inline-block"></span>
+                        En formation :
+                      </span>
+                      <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                        {Math.max(0, countEnCours)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. TABLEAU DES RÉSULTATS D'EXAMEN */}
+                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+                  <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      Procès-Verbal des Résultats - {sessionExamNom}
+                    </span>
+                    <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                      Modifiez le statut d'un élève directement en 1 clic
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50/60 text-slate-500 font-semibold text-[11px] border-b border-slate-200 uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-3.5">Candidat & Contact</th>
+                          <th className="px-4 py-3.5">Permis & Formation</th>
+                          {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CODE') && (
+                            <th className="px-4 py-3.5">Code de la Route</th>
+                          )}
+                          {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CONDUITE') && (
+                            <th className="px-4 py-3.5">Conduite</th>
+                          )}
+                          <th className="px-4 py-3.5 text-center">Résultat Global</th>
+                          <th className="px-4 py-3.5 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredResultats.map((c) => {
+                          const initiales = `${(c.nom || 'C').slice(0, 1)}${(c.prenom || 'P').slice(0, 1)}`.toUpperCase();
+
+                          // Calcul du statut global d'examen réel (JAMAIS Ajourné par défaut !)
+                          const isAdmisCode = c.statut_examen_code === 'ADMIS';
+                          const isAdmisConduite = c.statut_examen_conduite === 'ADMIS';
+                          const isAjourneCode = c.statut_examen_code === 'AJOURNE';
+                          const isAjourneConduite = c.statut_examen_conduite === 'AJOURNE';
+
+                          let badgeGlobal = {
+                            label: 'En formation',
+                            classes: 'bg-slate-100 text-slate-700 border-slate-200',
+                          };
+
+                          if (c.statut === 'ADMIS' || (isAdmisCode && isAdmisConduite) || (c.type_formation === 'CODE_SEUL' && isAdmisCode) || (c.type_formation === 'CONDUITE_SEULE' && isAdmisConduite)) {
+                            badgeGlobal = {
+                              label: 'Admis au Permis ✓',
+                              classes: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold',
+                            };
+                          } else if (isAjourneCode || isAjourneConduite || c.statut === 'NON_ADMIS') {
+                            badgeGlobal = {
+                              label: 'Ajourné ✗',
+                              classes: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+                            };
+                          } else if (c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') {
+                            badgeGlobal = {
+                              label: 'Convoqué Examen',
+                              classes: 'bg-blue-100 text-blue-800 border-blue-300 font-semibold',
+                            };
+                          }
+
+                          // Message WhatsApp pré-rempli
+                          const msgResultat = badgeGlobal.label.includes('Admis')
+                            ? `Félicitations ${c.prenom} ! L'Auto-École SAINT EDMOND vous informe que vous avez réussi votre examen du Permis ${c.categorie || 'B'}. Présentez-vous au secrétariat pour les formalités.`
+                            : badgeGlobal.label.includes('Ajourné')
+                            ? `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que vous n'avez pas validé votre dernière épreuve d'examen. Merci de contacter le secrétariat pour vous inscrire à la prochaine session de rattrapage.`
+                            : `Bonjour ${c.prenom}, l'Auto-École SAINT EDMOND vous informe que vous êtes convoqué(e) pour l'examen du Permis ${c.categorie || 'B'} (${sessionExamNom}). Merci de vous rapprocher du secrétariat.`;
+
+                          return (
+                            <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                              {/* Colonne 1 : Candidat & Contact */}
+                              <td className="px-4 py-3.5 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs flex items-center justify-center uppercase shrink-0">
+                                    {initiales}
+                                  </div>
+                                  <div>
+                                    <span className="font-bold text-slate-900 text-xs block">
+                                      {c.nom} {c.prenom}
+                                    </span>
+                                    <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
+                                      {c.contact ? (
+                                        <a href={`tel:${c.contact}`} className="hover:text-blue-600 hover:underline">
+                                          {c.contact}
+                                        </a>
+                                      ) : '—'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Colonne 2 : Permis & Formation */}
+                              <td className="px-4 py-3.5 whitespace-nowrap">
+                                <span className="inline-block text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-lg">
+                                  Permis {c.categorie || 'B'}
+                                </span>
+                                <span className="text-[11px] text-slate-500 font-medium block mt-1">
+                                  {c.type_formation === 'RECYCLAGE' ? 'Recyclage' : c.type_formation === 'CONDUITE_SEULE' ? 'Conduite Uniquement' : 'Formation Complète'}
+                                </span>
+                              </td>
+
+                              {/* Colonne 3 : Épreuve Code de la Route (Modifiable directement en 1 clic) */}
+                              {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CODE') && (
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  {c.type_formation === 'CONDUITE_SEULE' ? (
+                                    <span className="text-[11px] text-slate-400 font-medium italic">Déjà acquis</span>
+                                  ) : (
+                                    <select
+                                      value={c.statut_examen_code || 'NON_PROGRAMME'}
+                                      onChange={(e) => handleUpdateCandidateExamStatus(c.id, 'CODE', e.target.value as any)}
+                                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border transition cursor-pointer focus:outline-none ${
+                                        c.statut_examen_code === 'ADMIS'
+                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                          : c.statut_examen_code === 'AJOURNE'
+                                          ? 'bg-rose-50 text-rose-800 border-rose-300'
+                                          : c.statut_examen_code === 'PROGRAMME'
+                                          ? 'bg-blue-50 text-blue-800 border-blue-300'
+                                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                                      }`}
+                                    >
+                                      <option value="NON_PROGRAMME">En formation</option>
+                                      <option value="PROGRAMME">Programmé</option>
+                                      <option value="ADMIS">Admis ✓</option>
+                                      <option value="AJOURNE">Ajourné ✗</option>
+                                    </select>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Colonne 4 : Épreuve Conduite (Modifiable directement en 1 clic) */}
+                              {(resultatEpreuve === 'TOUS' || resultatEpreuve === 'CONDUITE') && (
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  {c.type_formation === 'CODE_SEUL' ? (
+                                    <span className="text-[11px] text-slate-400 font-medium italic">Non concerné</span>
+                                  ) : (
+                                    <select
+                                      value={c.statut_examen_conduite || 'NON_PROGRAMME'}
+                                      onChange={(e) => handleUpdateCandidateExamStatus(c.id, 'CONDUITE', e.target.value as any)}
+                                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border transition cursor-pointer focus:outline-none ${
+                                        c.statut_examen_conduite === 'ADMIS'
+                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                          : c.statut_examen_conduite === 'AJOURNE'
+                                          ? 'bg-rose-50 text-rose-800 border-rose-300'
+                                          : c.statut_examen_conduite === 'PROGRAMME'
+                                          ? 'bg-blue-50 text-blue-800 border-blue-300'
+                                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                                      }`}
+                                    >
+                                      <option value="NON_PROGRAMME">En formation</option>
+                                      <option value="PROGRAMME">Programmé</option>
+                                      <option value="ADMIS">Admis ✓</option>
+                                      <option value="AJOURNE">Ajourné ✗</option>
+                                    </select>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Colonne 5 : Résultat Global Réel */}
+                              <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-xs border ${badgeGlobal.classes}`}>
+                                  {badgeGlobal.label}
+                                </span>
+                              </td>
+
+                              {/* Colonne 6 : Action WhatsApp direct */}
+                              <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                                <a
+                                  href={`https://wa.me/228${(c.contact || '').replace(/\s+/g, '')}?text=${encodeURIComponent(msgResultat)}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 transition shadow-2xs cursor-pointer"
+                                  title="Notifier le candidat sur WhatsApp"
+                                >
+                                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>WhatsApp</span>
+                                </a>
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        {filteredResultats.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="text-center py-10 text-slate-400 text-xs">
+                              Aucun candidat trouvé pour cette sélection.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-
-          
-
-        </main>
+            );
+          })()}
+          </main>
       </div>
 
       {/* ================= MODALS SYSTEM ================= */}
