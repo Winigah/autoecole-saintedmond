@@ -1165,21 +1165,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Subscription Notice */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-                <div>
-                  <h4 className="font-bold text-amber-900 text-sm flex items-center gap-1.5">
-                    <Shield className="w-4 h-4 text-amber-600" />
-                    <span>Licence Auto-École Saint Edmond - Active</span>
-                  </h4>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Agrément d'État N° 036/MTRAF/META • Siège unique : Tokoin Ramco (Von Boutique LG, face Ambassade de Belgique, Lomé) • Tél : +228 91 88 02 75
-                  </p>
-                </div>
-                <div className="bg-amber-100 text-amber-800 text-xs px-3 py-1.5 rounded-lg font-semibold shrink-0">
-                  Valide 2026-2027
-                </div>
-              </div>
+              
 
               {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
