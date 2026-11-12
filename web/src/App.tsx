@@ -5,7 +5,7 @@ import {
   Search, Download, RefreshCw, CheckCircle2, AlertCircle, MessageSquare, Calendar, Car,
   Pencil, Trash2, Clock, Check, CheckCheck, RotateCcw,
   KeyRound, LayoutGrid, List, Phone, Eye, EyeOff, Lock, Camera, ShieldCheck,
-  Wifi, WifiOff,
+  Wifi, WifiOff, MapPin, Building2,
   UserPlus, ArrowDownLeft, ArrowUpRight
 } from 'lucide-react';
 
@@ -4531,58 +4531,100 @@ export default function App() {
         );
       })()}
 
-      {modalType === 'add_annexe' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      {modalType === 'add_annexe' && (() => {
+        const nomTrimmed = newAnnexeName.trim();
+        const alreadyExists = nomTrimmed.length > 0 && annexesList.map(a => a.toLowerCase()).includes(nomTrimmed.toLowerCase());
+        return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+
+            {/* Header */}
+            <div className="px-6 py-5 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
-                  <Plus className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-white/15 text-white flex items-center justify-center">
+                  <Building2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Créer une Nouvelle Annexe</h3>
-                  <p className="text-xs text-slate-500 font-medium">Auto-École Saint Edmond • Expansion</p>
+                  <h3 className="font-extrabold text-base text-white leading-tight">Nouvelle Annexe</h3>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">Auto-École Saint Edmond</p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setModalType(null)}
-                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                onClick={() => { setModalType(null); setNewAnnexeName(''); }}
+                className="w-9 h-9 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <p className="text-xs text-slate-500 bg-blue-50/60 border border-blue-200/60 rounded-xl p-3 leading-relaxed">
-                Le siège principal officiel est <strong>Tokoin Ramco (Siège)</strong>. Vous pouvez enregistrer ici les nouvelles annexes de l'auto-école dès leur mise en service.
-              </p>
+            <div className="p-6 space-y-5">
+              {/* Info siège */}
+              <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  Le siège principal est <strong className="font-bold">Tokoin Ramco (Siège)</strong>. Enregistrez ici chaque nouvelle annexe dès sa mise en service.
+                </p>
+              </div>
 
               <form onSubmit={handleAddAnnexe} className="space-y-4">
+                {/* Nom de l'annexe */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">
-                    Nom de l'Annexe / Quartier *
+                    Nom de l'Annexe / Quartier <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={newAnnexeName}
-                    onChange={(e) => setNewAnnexeName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
-                  />
+                  <div className="relative">
+                    <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      value={newAnnexeName}
+                      onChange={(e) => setNewAnnexeName(e.target.value)}
+                      placeholder="Ex : Bè Kpota, Adidogomé, Agoè..."
+                      className={`w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 transition placeholder:text-slate-300 placeholder:font-normal ${
+                        alreadyExists
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
+                          : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'
+                      }`}
+                    />
+                  </div>
+                  {alreadyExists && (
+                    <p className="text-[11px] font-semibold text-rose-600 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      Cette annexe existe déjà dans la liste.
+                    </p>
+                  )}
                 </div>
 
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                {/* Aperçu liste existante */}
+                {annexesList.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Annexes existantes ({annexesList.length})</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {annexesList.map((a) => (
+                        <span key={a} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                          <Building2 className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                          {a}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => setModalType(null)}
+                    onClick={() => { setModalType(null); setNewAnnexeName(''); }}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                    disabled={!nomTrimmed || alreadyExists}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Créer l'Annexe</span>
@@ -4592,7 +4634,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
