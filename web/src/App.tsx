@@ -3280,18 +3280,12 @@ export default function App() {
 
                 {/* Séances de conduite prévues */}
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2">
-                  <div>
-                    <span className="block text-[11px] font-bold text-amber-900 uppercase tracking-wide">Séances de Conduite prévues</span>
-                    <span className="block text-[11px] text-amber-700 mt-0.5">
-                      Recyclage : 7 — Permis A : 14 — Autres : 12 — Achat Conduite : libre
-                    </span>
-                  </div>
+                  <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">Séances de Conduite prévues</span>
                   <input
                     type="number"
                     name="nb_conduites_prevues"
                     min="0"
                     max="99"
-                    defaultValue="12"
                     className="w-20 bg-white border border-amber-300 rounded-xl px-2 py-1.5 text-sm font-extrabold text-amber-900 text-center focus:outline-none focus:ring-2 focus:ring-amber-400"
                   />
                 </div>
