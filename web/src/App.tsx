@@ -4,7 +4,7 @@ import {
   UserCheck, Shield, FileText, Send, Menu, X, Plus, 
   Search, Download, RefreshCw, CheckCircle2, AlertCircle, MessageSquare, Calendar, Car,
   Pencil, Trash2, Clock, Check, CheckCheck, RotateCcw,
-  KeyRound, LayoutGrid, List, Phone, Eye, Lock, Camera,
+  KeyRound, LayoutGrid, List, Phone, Eye, EyeOff, Lock, Camera, ShieldCheck,
   Wifi, WifiOff,
   UserPlus, ArrowDownLeft, ArrowUpRight
 } from 'lucide-react';
@@ -115,6 +115,20 @@ export default function App() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { score: 0, label: '', barColor: 'bg-slate-200', textColor: 'text-slate-400' };
+    let score = 0;
+    if (pwd.length >= 6) score += 1;
+    if (pwd.length >= 8 && /[0-9]/.test(pwd)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(pwd) || (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd))) score += 1;
+    if (score <= 1) return { score: 1, label: 'Faible', barColor: 'bg-rose-500', textColor: 'text-rose-600' };
+    if (score === 2) return { score: 2, label: 'Moyen', barColor: 'bg-amber-500', textColor: 'text-amber-600' };
+    return { score: 3, label: 'Robuste', barColor: 'bg-emerald-500', textColor: 'text-emerald-600' };
+  };
 
   // Modals state
   const [modalType, setModalType] = useState<string | null>(null);
@@ -632,6 +646,9 @@ export default function App() {
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
     showToast('Votre mot de passe a été modifié avec succès !');
   };
 
@@ -967,6 +984,9 @@ export default function App() {
                   setOldPassword('');
                   setNewPassword('');
                   setConfirmPassword('');
+                  setShowOldPassword(false);
+                  setShowNewPassword(false);
+                  setShowConfirmPassword(false);
                   setPasswordModalOpen(true);
                 }}
                 title="Modifier mon mot de passe"
@@ -4338,29 +4358,36 @@ export default function App() {
       )}
 
       {/* Password change modal (DG et Secrétaire) */}
-      {passwordModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      {passwordModalOpen && (() => {
+        const pwdStrength = getPasswordStrength(newPassword);
+        const pwdMatch = confirmPassword.length > 0 && confirmPassword === newPassword;
+        const pwdMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
+        return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+
+            {/* Header */}
+            <div className="px-6 py-5 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
-                  <KeyRound className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-white/15 text-white flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Modifier mon Mot de Passe</h3>
-                  <p className="text-xs text-slate-500 font-medium">Sécurité du compte • ${role === 'DG' ? 'Direction Générale' : 'Secrétariat'}</p>
+                  <h3 className="font-extrabold text-base text-white leading-tight">Modifier mon mot de passe</h3>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">{role === 'DG' ? 'Direction Générale' : 'Secrétariat'}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setPasswordModalOpen(false)}
-                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-5">
+              {/* Alerte erreur */}
               {passwordError && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -4369,56 +4396,118 @@ export default function App() {
               )}
 
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
+
+                {/* Mot de passe actuel */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Mot de passe actuel *
-                  </label>
+                  <label className="block text-xs font-bold text-slate-700">Mot de passe actuel <span className="text-rose-500">*</span></label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="password"
+                      type={showOldPassword ? 'text' : 'password'}
                       required
+                      autoComplete="current-password"
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                      placeholder="Votre mot de passe actuel"
+                      className="w-full pl-10 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition placeholder:text-slate-300"
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowOldPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
+                {/* Séparateur */}
+                <div className="border-t border-slate-100" />
+
+                {/* Nouveau mot de passe */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Nouveau mot de passe *
-                  </label>
+                  <label className="block text-xs font-bold text-slate-700">Nouveau mot de passe <span className="text-rose-500">*</span></label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="password"
+                      type={showNewPassword ? 'text' : 'password'}
                       required
                       minLength={4}
+                      autoComplete="new-password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                      placeholder="Minimum 4 caractères"
+                      className="w-full pl-10 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition placeholder:text-slate-300"
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowNewPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+
+                  {/* Jauge de force */}
+                  {newPassword.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= pwdStrength.score ? pwdStrength.barColor : 'bg-slate-100'}`} />
+                        ))}
+                      </div>
+                      <p className={`text-[11px] font-semibold ${pwdStrength.textColor}`}>
+                        Force du mot de passe : {pwdStrength.label}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
+                {/* Confirmer */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Confirmer le nouveau mot de passe *
-                  </label>
+                  <label className="block text-xs font-bold text-slate-700">Confirmer le nouveau mot de passe <span className="text-rose-500">*</span></label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                      placeholder="Répétez le nouveau mot de passe"
+                      className={`w-full pl-10 pr-11 py-2.5 bg-slate-50 border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 transition placeholder:text-slate-300 ${
+                        pwdMismatch
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
+                          : pwdMatch
+                          ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-100'
+                          : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'
+                      }`}
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowConfirmPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                  {pwdMatch && (
+                    <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Les mots de passe correspondent
+                    </p>
+                  )}
+                  {pwdMismatch && (
+                    <p className="text-[11px] font-semibold text-rose-600 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Les mots de passe ne correspondent pas
+                    </p>
+                  )}
                 </div>
 
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                {/* Actions */}
+                <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setPasswordModalOpen(false)}
@@ -4428,7 +4517,8 @@ export default function App() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                    disabled={pwdMismatch || !oldPassword || !newPassword || !confirmPassword}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Enregistrer</span>
@@ -4438,7 +4528,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {modalType === 'add_annexe' && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
