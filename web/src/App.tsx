@@ -320,15 +320,14 @@ export default function App() {
   const [presenceSearch, setPresenceSearch] = useState('');
   const [presenceAnnexe, setPresenceAnnexe] = useState('Toutes');
 
-  // Pointages des élèves : Record<candidatId, { present: boolean; date: string; heure: string; typeSeance: 'CODE' | 'CONDUITE' }>
+  // Pointages des élèves : clé composite "candidatId_date" => { heure, typeSeance }
+  // Chaque date est un enregistrement indépendant - cumul automatique des séances.
   const [presencesRecords, setPresencesRecords] = useState<Record<string, {
-    present: boolean;
-    date: string;
     heure: string;
     typeSeance: 'CODE' | 'CONDUITE';
   }>>(() => {
     try {
-      const saved = localStorage.getItem('autoecole_presences_saintedmond');
+      const saved = localStorage.getItem('autoecole_presences_saintedmond_v2');
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -337,7 +336,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('autoecole_presences_saintedmond', JSON.stringify(presencesRecords));
+      localStorage.setItem('autoecole_presences_saintedmond_v2', JSON.stringify(presencesRecords));
     } catch (e) {
       console.error(e);
     }
@@ -1905,67 +1904,111 @@ export default function App() {
             });
 
             const presenceTotalCount = filteredPresenceCandidats.length;
-            const presencePresentsCount = filteredPresenceCandidats.filter(c => presencesRecords[c.id]?.present).length;
+            const presencePresentsCount = filteredPresenceCandidats.filter(c => Boolean(presencesRecords[getPresenceKey(c.id, presenceDate)])).length;
             const presenceAbsentsCount = presenceTotalCount - presencePresentsCount;
             const presenceTaux = presenceTotalCount > 0 ? Math.round((presencePresentsCount / presenceTotalCount) * 100) : 0;
 
+            const getPresenceKey = (candidatId: string, date: string) => `${candidatId}_${date}`;
+
             const togglePresence = (c: Candidat) => {
-              const current = presencesRecords[c.id];
-              const willBePresent = !current?.present;
+              const key = getPresenceKey(c.id, presenceDate);
+              const alreadyPointed = Boolean(presencesRecords[key]);
               const sessionDiscipline = presenceType === 'TOUS'
                 ? (c.type_formation === 'CODE_SEUL' ? 'CODE' : 'CONDUITE')
                 : presenceType;
 
-              setPresencesRecords(prev => ({
-                ...prev,
-                [c.id]: {
-                  present: willBePresent,
-                  date: presenceDate,
-                  heure: presenceHeure,
-                  typeSeance: sessionDiscipline,
+              if (alreadyPointed) {
+                // Annuler le pointage de cette date
+                setPresencesRecords(prev => {
+                  const next = { ...prev };
+                  delete next[key];
+                  return next;
+                });
+                // Si c'était une séance de Conduite, décrémenter le compteur
+                if (sessionDiscipline === 'CONDUITE') {
+                  setCandidats(prev => prev.map(cd => {
+                    if (cd.id !== c.id) return cd;
+                    const updated = { ...cd, nb_conduites_effectuees: Math.max(0, (cd.nb_conduites_effectuees || 0) - 1) };
+                    syncService.syncCandidat(updated);
+                    return updated;
+                  }));
                 }
-              }));
-
-              if (willBePresent) {
-                showToast(`✓ Pointé(e) PRÉSENT(E) : ${c.nom} ${c.prenom} (${sessionDiscipline === 'CODE' ? 'Code' : 'Conduite'}) à ${presenceHeure}`);
+                showToast(`Pointage du ${presenceDate} annulé pour : ${c.nom} ${c.prenom}`);
               } else {
-                showToast(`Pointage annulé pour : ${c.nom} ${c.prenom}`);
+                // Nouveau pointage pour cette date
+                setPresencesRecords(prev => ({
+                  ...prev,
+                  [key]: { heure: presenceHeure, typeSeance: sessionDiscipline }
+                }));
+                // Si c'est une séance de Conduite, incrémenter le compteur
+                if (sessionDiscipline === 'CONDUITE') {
+                  setCandidats(prev => prev.map(cd => {
+                    if (cd.id !== c.id) return cd;
+                    const updated = { ...cd, nb_conduites_effectuees: (cd.nb_conduites_effectuees || 0) + 1 };
+                    syncService.syncCandidat(updated);
+                    return updated;
+                  }));
+                }
+                showToast(`✓ Pointé(e) PRÉSENT(E) : ${c.nom} ${c.prenom} (${sessionDiscipline === 'CODE' ? 'Code' : 'Conduite'}) à ${presenceHeure}`);
               }
             };
 
             const handleMarkAll = () => {
+              const toIncrement: string[] = [];
               setPresencesRecords(prev => {
                 const next = { ...prev };
                 filteredPresenceCandidats.forEach(c => {
-                  const sessionDiscipline = presenceType === 'TOUS'
-                    ? (c.type_formation === 'CODE_SEUL' ? 'CODE' : 'CONDUITE')
-                    : presenceType;
-                  next[c.id] = {
-                    present: true,
-                    date: presenceDate,
-                    heure: presenceHeure,
-                    typeSeance: sessionDiscipline,
-                  };
+                  const key = getPresenceKey(c.id, presenceDate);
+                  if (!next[key]) {
+                    const sessionDiscipline = presenceType === 'TOUS'
+                      ? (c.type_formation === 'CODE_SEUL' ? 'CODE' : 'CONDUITE')
+                      : presenceType;
+                    next[key] = { heure: presenceHeure, typeSeance: sessionDiscipline };
+                    if (sessionDiscipline === 'CONDUITE') toIncrement.push(c.id);
+                  }
                 });
                 return next;
               });
+              // Incrémenter les conduites uniquement pour les nouveaux pointages
+              if (toIncrement.length > 0) {
+                setCandidats(prev => prev.map(cd => {
+                  if (!toIncrement.includes(cd.id)) return cd;
+                  const updated = { ...cd, nb_conduites_effectuees: (cd.nb_conduites_effectuees || 0) + 1 };
+                  syncService.syncCandidat(updated);
+                  return updated;
+                }));
+              }
               showToast(`${filteredPresenceCandidats.length} élève(s) pointé(s) PRÉSENTS pour le ${presenceDate} à ${presenceHeure} !`);
             };
 
             const handleResetAll = () => {
+              const toDecrement: string[] = [];
               setPresencesRecords(prev => {
                 const next = { ...prev };
                 filteredPresenceCandidats.forEach(c => {
-                  if (next[c.id]) next[c.id] = { ...next[c.id], present: false };
+                  const key = getPresenceKey(c.id, presenceDate);
+                  if (next[key]) {
+                    if (next[key].typeSeance === 'CONDUITE') toDecrement.push(c.id);
+                    delete next[key];
+                  }
                 });
                 return next;
               });
-              showToast('Pointages réinitialisés pour la sélection');
+              if (toDecrement.length > 0) {
+                setCandidats(prev => prev.map(cd => {
+                  if (!toDecrement.includes(cd.id)) return cd;
+                  const updated = { ...cd, nb_conduites_effectuees: Math.max(0, (cd.nb_conduites_effectuees || 0) - 1) };
+                  syncService.syncCandidat(updated);
+                  return updated;
+                }));
+              }
+              showToast('Pointages de la journée réinitialisés pour la sélection');
             };
 
             const handleExportPDF = () => {
               const items = filteredPresenceCandidats.map(c => {
-                const rec = presencesRecords[c.id];
+                const pdfKey = getPresenceKey(c.id, presenceDate);
+                const rec = presencesRecords[pdfKey];
                 const disc = rec?.typeSeance || (presenceType === 'TOUS' ? (c.type_formation === 'CODE_SEUL' ? 'CODE' : 'CONDUITE') : presenceType);
                 return {
                   nom: c.nom,
@@ -1974,8 +2017,8 @@ export default function App() {
                   annexe: c.annexe,
                   categorie: c.categorie,
                   discipline: disc === 'CODE' ? 'Cours de Code' : 'Conduite Pratique',
-                  present: Boolean(rec?.present),
-                  heurePointage: rec?.present ? rec.heure : undefined,
+                  present: Boolean(rec),
+                  heurePointage: rec ? rec.heure : undefined,
                 };
               });
               generatePresencePDF(
@@ -2240,8 +2283,9 @@ export default function App() {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredPresenceCandidats.map((c) => {
-                          const record = presencesRecords[c.id];
-                          const isPresent = Boolean(record?.present);
+                          const presKey = getPresenceKey(c.id, presenceDate);
+                          const record = presencesRecords[presKey];
+                          const isPresent = Boolean(record);
                           const initiales = `${(c.nom || 'C').slice(0, 1)}${(c.prenom || 'P').slice(0, 1)}`.toUpperCase();
                           const sessionDiscipline = record?.typeSeance || (
                             presenceType === 'TOUS' ? (c.type_formation === 'CODE_SEUL' ? 'CODE' : 'CONDUITE') : presenceType
@@ -2251,7 +2295,7 @@ export default function App() {
                             : 0;
 
                           const msgConfirmation = isPresent
-                            ? `Bonjour ${c.prenom} ! L'Auto-École Saint Edmond confirme votre présence au ${sessionDiscipline === 'CODE' ? 'cours de Code' : 'cours de Conduite'} du ${presenceDate} à ${record?.heure || presenceHeure}. Bonne formation !`
+                            ? `Bonjour ${c.prenom} ! L'Auto-École Saint Edmond confirme votre présence au ${sessionDiscipline === 'CODE' ? 'cours de Code' : 'cours de Conduite'} du ${presenceDate} a ${record?.heure || presenceHeure}. Bonne formation !`
                             : `Bonjour ${c.prenom} ! Vous avez été marqué(e) absent(e) au cours de ${sessionDiscipline === 'CODE' ? 'Code' : 'Conduite'} du ${presenceDate} à ${presenceHeure} à l'Auto-École Saint Edmond. Merci de contacter le secrétariat si nécessaire.`;
 
                           return (
@@ -3232,6 +3276,24 @@ export default function App() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Séances de conduite prévues */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+                  <div>
+                    <span className="block text-[11px] font-bold text-amber-900 uppercase tracking-wide">Séances de Conduite prévues</span>
+                    <span className="block text-[11px] text-amber-700 mt-0.5">
+                      Recyclage : 7 — Permis A : 14 — Autres : 12 — Achat Conduite : libre
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    name="nb_conduites_prevues"
+                    min="0"
+                    max="99"
+                    defaultValue="12"
+                    className="w-20 bg-white border border-amber-300 rounded-xl px-2 py-1.5 text-sm font-extrabold text-amber-900 text-center focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
                 </div>
 
                 {/* Annexe d'inscription */}
