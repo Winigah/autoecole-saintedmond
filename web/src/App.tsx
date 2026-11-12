@@ -1903,12 +1903,12 @@ export default function App() {
               return matchAnnexe && matchSearch && matchType;
             });
 
+            const getPresenceKey = (candidatId: string, date: string) => `${candidatId}_${date}`;
+
             const presenceTotalCount = filteredPresenceCandidats.length;
             const presencePresentsCount = filteredPresenceCandidats.filter(c => Boolean(presencesRecords[getPresenceKey(c.id, presenceDate)])).length;
             const presenceAbsentsCount = presenceTotalCount - presencePresentsCount;
             const presenceTaux = presenceTotalCount > 0 ? Math.round((presencePresentsCount / presenceTotalCount) * 100) : 0;
-
-            const getPresenceKey = (candidatId: string, date: string) => `${candidatId}_${date}`;
 
             const togglePresence = (c: Candidat) => {
               const key = getPresenceKey(c.id, presenceDate);
