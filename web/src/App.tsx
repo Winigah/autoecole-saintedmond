@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, DollarSign, TrendingUp, Award, BookOpen, 
   UserCheck, Shield, FileText, Send, Menu, X, Plus, 
   Search, Download, RefreshCw, CheckCircle2, AlertCircle, MessageSquare, Calendar, Car,
-  Pencil, Trash2, Clock, CheckSquare, Check, XCircle,
+  Pencil, Trash2, Clock, Check, CheckCheck, RotateCcw,
   KeyRound, LayoutGrid, List, Phone, Eye, Lock, Camera,
   Wifi, WifiOff,
   UserPlus, ArrowDownLeft, ArrowUpRight
@@ -1893,10 +1893,10 @@ export default function App() {
           )}
 
           {/* ================= PRÉSENCE ================= */}
-          {/* ================= PRÉSENCE ================= */}
           {activeTab === 'Présence' && (() => {
+            const effectiveAnnexe = annexeFilter !== 'Toutes' ? annexeFilter : presenceAnnexe;
             const filteredPresenceCandidats = candidats.filter((c) => {
-              const matchAnnexe = presenceAnnexe === 'Toutes' || c.annexe === presenceAnnexe;
+              const matchAnnexe = effectiveAnnexe === 'Toutes' || c.annexe === effectiveAnnexe;
               const matchSearch = `${c.nom || ''} ${c.prenom || ''} ${c.contact || ''}`.toLowerCase().includes(presenceSearch.toLowerCase());
               const matchType = presenceType === 'TOUS' || (
                 presenceType === 'CODE' ? c.type_formation !== 'CONDUITE_SEULE' : c.type_formation !== 'CODE_SEUL'
@@ -1983,14 +1983,14 @@ export default function App() {
                 presenceDate,
                 presenceHeure,
                 presenceType === 'TOUS' ? 'Code & Conduite' : presenceType === 'CODE' ? 'Cours de Code' : 'Conduite Pratique',
-                presenceAnnexe,
+                effectiveAnnexe,
                 schoolName
               );
             };
 
             return (
-              <div className="space-y-5">
-                {/* En-tête de section */}
+              <div className="space-y-4">
+                {/* En-tête de section avec titre et bouton Export PDF */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -1998,101 +1998,105 @@ export default function App() {
                       <span>Liste de Présence & Émargement des Élèves</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Pointage direct au cours de code et en conduite à une date et heure choisies.
+                      Pointage direct en un clic aux cours de code et séances de conduite.
                     </p>
                   </div>
                   <button
                     onClick={handleExportPDF}
-                    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition shrink-0"
+                    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition shrink-0 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Exporter Feuille d'Émargement (PDF)</span>
                   </button>
                 </div>
 
-                {/* Configuration de la séance (Date, Heure, Discipline, Annexe) */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {/* Date */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Date de la séance</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={presenceDate}
-                        onChange={(e) => setPresenceDate(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                {/* 1. BARRE DE CONTRÔLE UNIFIÉE & COMPACTE */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* Date, Heure & Raccourcis */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Sélecteur de Date */}
+                      <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 transition">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <input
+                          type="date"
+                          value={presenceDate}
+                          onChange={(e) => setPresenceDate(e.target.value)}
+                          className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        />
+                      </div>
 
-                    {/* Heure */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Heure de début</span>
-                        </span>
+                      {/* Sélecteur d'Heure */}
+                      <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-emerald-500 transition">
+                        <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <input
+                          type="time"
+                          value={presenceHeure}
+                          onChange={(e) => setPresenceHeure(e.target.value)}
+                          className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        />
                         <button
                           type="button"
                           onClick={() => {
                             const d = new Date();
                             setPresenceHeure(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
                           }}
-                          className="text-[10px] text-blue-600 hover:underline font-normal"
+                          title="Régler à l'heure courante"
+                          className="text-[10px] bg-white border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-semibold px-2 py-0.5 rounded transition cursor-pointer"
                         >
-                          Heure actuelle
+                          Maintenant
                         </button>
-                      </label>
-                      <input
-                        type="time"
-                        value={presenceHeure}
-                        onChange={(e) => setPresenceHeure(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      </div>
+
+                      {/* Créneaux usuels rapides */}
+                      <div className="hidden lg:flex items-center gap-1 text-[11px] bg-slate-100 p-1 rounded-xl">
+                        {['08:00', '10:00', '15:00', '17:00'].map((cr) => (
+                          <button
+                            key={cr}
+                            type="button"
+                            onClick={() => setPresenceHeure(cr)}
+                            className={`px-2 py-0.5 rounded-lg font-medium transition cursor-pointer ${
+                              presenceHeure === cr
+                                ? 'bg-white text-blue-700 font-bold shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            {cr}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
-                    {/* Annexe */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                        Annexe / Agence
-                      </label>
-                      <select
-                        value={presenceAnnexe}
-                        onChange={(e) => setPresenceAnnexe(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="Toutes">Toutes les agences</option>
-                        {annexesList.map((a) => (
-                          <option key={a} value={a}>{a}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {/* Recherche élève */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1 flex items-center gap-1.5">
-                        <Search className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Recherche élève</span>
-                      </label>
+                    {/* Barre de recherche instantanée */}
+                    <div className="relative min-w-[220px] max-w-sm flex-1">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
-                        placeholder="Nom, prénom ou tél..."
+                        placeholder="Rechercher élève par nom, prénom ou contact..."
                         value={presenceSearch}
                         onChange={(e) => setPresenceSearch(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                       />
+                      {presenceSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setPresenceSearch('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Sélecteur de type d'activité (Discipline) */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  {/* Ligne 2 : Filtres de Discipline & Annexe */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
                     <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
                       <button
                         type="button"
                         onClick={() => setPresenceType('TOUS')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                          presenceType === 'TOUS' ? 'bg-white text-blue-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          presenceType === 'TOUS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
                         Tous les Élèves ({presenceTotalCount})
@@ -2100,107 +2104,137 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setPresenceType('CODE')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                           presenceType === 'CODE' ? 'bg-purple-600 text-white shadow-2xs' : 'text-purple-700 hover:bg-purple-50'
                         }`}
                       >
                         <BookOpen className="w-3.5 h-3.5" />
-                        <span>Cours de Code (Théorique)</span>
+                        <span>Cours de Code</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setPresenceType('CONDUITE')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                           presenceType === 'CONDUITE' ? 'bg-blue-600 text-white shadow-2xs' : 'text-blue-700 hover:bg-blue-50'
                         }`}
                       >
                         <Car className="w-3.5 h-3.5" />
-                        <span>Séances de Conduite (Pratique)</span>
+                        <span>Séances de Conduite</span>
                       </button>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleMarkAll}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition"
-                      >
-                        <CheckSquare className="w-3.5 h-3.5" />
-                        <span>Tout cocher Présent</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleResetAll}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Réinitialiser</span>
-                      </button>
-                    </div>
+                    {/* Filtre Annexe si "Toutes" sélectionné au niveau global */}
+                    {annexeFilter === 'Toutes' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-slate-500">Annexe :</span>
+                        <select
+                          value={presenceAnnexe}
+                          onChange={(e) => setPresenceAnnexe(e.target.value)}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        >
+                          <option value="Toutes">Toutes les agences</option>
+                          {annexesList.map((a) => (
+                            <option key={a} value={a}>{a}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Synthèse des Présences (Cartes compteurs) */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase">Élèves concernés</span>
-                    <p className="text-2xl font-black text-slate-900 mt-1">{presenceTotalCount}</p>
-                    <span className="text-[11px] text-slate-400">Pour cette séance</span>
-                  </div>
-
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-xs">
-                    <span className="text-[11px] font-bold text-emerald-700 uppercase">Pointés Présents</span>
-                    <p className="text-2xl font-black text-emerald-800 mt-1">{presencePresentsCount}</p>
-                    <span className="text-[11px] text-emerald-600 font-semibold">✓ Émargés avec succès</span>
-                  </div>
-
-                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl shadow-xs">
-                    <span className="text-[11px] font-bold text-amber-700 uppercase">Absents</span>
-                    <p className="text-2xl font-black text-amber-800 mt-1">{presenceAbsentsCount}</p>
-                    <span className="text-[11px] text-amber-600 font-medium">Non encore pointés</span>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl shadow-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-blue-700 uppercase">Taux de présence</span>
-                      <span className="text-xs font-black text-blue-800">{presenceTaux}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-blue-200/60 rounded-full mt-3 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                        style={{ width: `${presenceTaux}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-blue-600 block mt-1">Séance à {presenceHeure}</span>
-                  </div>
-                </div>
-
-                {/* Tableau principal des Élèves et Émargement */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                  <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-slate-700 uppercase tracking-wider">
-                        Liste d'Émargement – {new Date(presenceDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                {/* 2. BARRE DE SYNTHÈSE FLUIDE (Compacte & Visuelle) */}
+                <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200/90 p-3 sm:px-5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs">
+                    {/* Total Élèves */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500 font-medium">Élèves concernés :</span>
+                      <span className="font-extrabold text-slate-900 bg-slate-200/80 px-2 py-0.5 rounded-md">
+                        {presenceTotalCount}
                       </span>
-                      <span className="text-xs bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                    </div>
+
+                    {/* Pointés Présents */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                        Pointés Présents :
+                      </span>
+                      <span className="font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        {presencePresentsCount}
+                      </span>
+                    </div>
+
+                    {/* Absents */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-700 font-medium flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                        Absents :
+                      </span>
+                      <span className="font-extrabold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
+                        {presenceAbsentsCount}
+                      </span>
+                    </div>
+
+                    {/* Taux de présence avec jauge fine */}
+                    <div className="flex items-center gap-2 pl-2 sm:border-l border-slate-200">
+                      <span className="text-slate-500 font-medium">Taux :</span>
+                      <span className="font-extrabold text-blue-700">{presenceTaux}%</span>
+                      <div className="w-20 sm:w-28 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            presenceTaux >= 80 ? 'bg-emerald-500' : presenceTaux >= 50 ? 'bg-blue-500' : 'bg-amber-500'
+                          }`}
+                          style={{ width: `${presenceTaux}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions collectives */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleMarkAll}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                    >
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span>Tout pointer présent</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetAll}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Réinitialiser</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. TABLEAU D'ÉMARGEMENT ÉPURÉ & MODERNE (5 Colonnes) */}
+                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+                  <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                        Feuille d'Émargement – {new Date(presenceDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                      <span className="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full">
                         Créneau de {presenceHeure}
                       </span>
                     </div>
                     <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-                      Cochez pour valider la présence en direct
+                      Cliquez directement pour pointer la présence
                     </span>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                      <thead className="bg-slate-50/50 text-slate-500 font-semibold text-xs border-b border-slate-200 uppercase tracking-wider">
+                      <thead className="bg-slate-50/60 text-slate-500 font-semibold text-[11px] border-b border-slate-200 uppercase tracking-wider">
                         <tr>
-                          <th className="px-4 py-3.5 text-center w-14">Cocher</th>
-                          <th className="px-4 py-3.5">Élève (Nom & Contact)</th>
-                          <th className="px-3 py-3.5">Permis & Annexe</th>
-                          <th className="px-3 py-3.5">Discipline</th>
-                          <th className="px-4 py-3.5">Statut de Présence & Heure</th>
-                          <th className="px-3 py-3.5">Progression Conduite</th>
+                          <th className="px-4 py-3.5 w-48">Pointage Direct</th>
+                          <th className="px-4 py-3.5">Élève & Contact</th>
+                          <th className="px-4 py-3.5">Séance & Annexe</th>
+                          <th className="px-4 py-3.5">Progression</th>
                           <th className="px-4 py-3.5 text-right">Action</th>
                         </tr>
                       </thead>
@@ -2218,62 +2252,73 @@ export default function App() {
 
                           const msgConfirmation = isPresent
                             ? `Bonjour ${c.prenom} ! L'Auto-École Saint Edmond confirme votre présence au ${sessionDiscipline === 'CODE' ? 'cours de Code' : 'cours de Conduite'} du ${presenceDate} à ${record?.heure || presenceHeure}. Bonne formation !`
-                            : `Bonjour ${c.prenom} ! Vous avez manqué la séance de ${sessionDiscipline === 'CODE' ? 'Code' : 'Conduite'} du ${presenceDate} à ${presenceHeure} à l'Auto-École Saint Edmond. Merci de contacter le secrétariat.`;
+                            : `Bonjour ${c.prenom} ! Vous avez été marqué(e) absent(e) au cours de ${sessionDiscipline === 'CODE' ? 'Code' : 'Conduite'} du ${presenceDate} à ${presenceHeure} à l'Auto-École Saint Edmond. Merci de contacter le secrétariat si nécessaire.`;
 
                           return (
                             <tr
                               key={c.id}
-                              className={`transition ${
-                                isPresent ? 'bg-emerald-50/40 hover:bg-emerald-50/70' : 'hover:bg-slate-50/80'
+                              className={`transition-colors ${
+                                isPresent ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50/80'
                               }`}
                             >
-                              {/* Case à cocher / Switch instantané */}
-                              <td className="px-4 py-3.5 text-center">
+                              {/* Colonne 1 : Pointage Direct 1-Clic */}
+                              <td className="px-4 py-3.5 whitespace-nowrap">
                                 <button
                                   type="button"
                                   onClick={() => togglePresence(c)}
-                                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition border ${
+                                  className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                                     isPresent
-                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                                      : 'bg-white text-slate-300 border-slate-300 hover:border-blue-500 hover:text-blue-500'
+                                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs'
+                                      : 'bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200 hover:border-emerald-300'
                                   }`}
-                                  title={isPresent ? 'Cliquer pour marquer Absent' : 'Cliquer pour marquer Présent à cette date et heure'}
+                                  title={isPresent ? 'Cliquer pour marquer absent' : 'Cliquer pour valider la présence maintenant'}
                                 >
-                                  {isPresent ? <Check className="w-4 h-4 stroke-[3]" /> : <div className="w-2.5 h-2.5 rounded-xs bg-slate-200" />}
+                                  {isPresent ? (
+                                    <>
+                                      <Check className="w-4 h-4 stroke-[3]" />
+                                      <span>Présent(e) à {record?.heure || presenceHeure}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300" />
+                                      <span>Pointer Présent</span>
+                                    </>
+                                  )}
                                 </button>
                               </td>
 
-                              {/* Élève */}
+                              {/* Colonne 2 : Élève, Contact & Permis */}
                               <td className="px-4 py-3.5 whitespace-nowrap">
-                                <div className="flex items-center gap-2.5">
-                                  <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center border uppercase shrink-0 ${
-                                    isPresent ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-9 h-9 rounded-full font-bold text-xs flex items-center justify-center border uppercase shrink-0 ${
+                                    isPresent ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
                                   }`}>
                                     {initiales}
                                   </div>
                                   <div>
-                                    <span className="font-bold text-slate-900 block text-xs leading-tight">
-                                      {c.nom} {c.prenom}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-slate-900 text-xs">
+                                        {c.nom} {c.prenom}
+                                      </span>
+                                      <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded">
+                                        Permis {c.categorie || 'B'}
+                                      </span>
+                                    </div>
                                     <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                                      {c.contact || '—'}
+                                      {c.contact ? (
+                                        <a href={`tel:${c.contact}`} className="hover:text-blue-600 hover:underline">
+                                          {c.contact}
+                                        </a>
+                                      ) : (
+                                        '—'
+                                      )}
                                     </span>
                                   </div>
                                 </div>
                               </td>
 
-                              {/* Permis & Annexe */}
-                              <td className="px-3 py-3.5 whitespace-nowrap">
-                                <span className="font-bold text-blue-600 text-xs block">
-                                  Permis {c.categorie || 'B'}
-                                </span>
-                                <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                                  {c.annexe?.replace('Tokoin Ramco (Siège)', 'Tokoin Ramco').replace('Formation à Domicile', 'À Domicile')}
-                                </span>
-                              </td>
-
-                              {/* Discipline */}
-                              <td className="px-3 py-3.5 whitespace-nowrap">
+                              {/* Colonne 3 : Séance & Annexe */}
+                              <td className="px-4 py-3.5 whitespace-nowrap">
                                 {sessionDiscipline === 'CODE' ? (
                                   <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-lg">
                                     <BookOpen className="w-3 h-3" />
@@ -2285,62 +2330,57 @@ export default function App() {
                                     <span>Conduite Pratique</span>
                                   </span>
                                 )}
+                                <span className="text-[11px] text-slate-500 font-medium block mt-1">
+                                  {c.annexe?.replace('Tokoin Ramco (Siège)', 'Tokoin Ramco').replace('Formation à Domicile', 'À Domicile')}
+                                </span>
                               </td>
 
-                              {/* Statut de Présence & Date / Heure exacte */}
+                              {/* Colonne 4 : Progression */}
                               <td className="px-4 py-3.5 whitespace-nowrap">
-                                {isPresent ? (
-                                  <div>
-                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span>PRÉSENT(E) ✓</span>
+                                {sessionDiscipline === 'CODE' ? (
+                                  <div className="space-y-1">
+                                    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      c.statut_examen_code === 'ADMIS'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-slate-100 text-slate-600'
+                                    }`}>
+                                      {c.statut_examen_code === 'ADMIS' ? 'Code validé' : 'Code en cours'}
                                     </span>
-                                    <p className="text-[10px] text-emerald-700 font-semibold mt-1">
-                                      Pointé(e) le {record?.date || presenceDate} à <span className="font-bold underline">{record?.heure || presenceHeure}</span>
-                                    </p>
                                   </div>
                                 ) : (
                                   <div>
-                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
-                                      <XCircle className="w-3.5 h-3.5 text-slate-400" />
-                                      <span>ABSENT / NON POINTÉ</span>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                        <div
+                                          className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                          style={{ width: `${Math.min(pct, 100)}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-[11px] font-bold text-slate-700">
+                                        {c.nb_conduites_effectuees || 0}/{c.nb_conduites_prevues || 20}
+                                      </span>
+                                    </div>
+                                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+                                      séances effectuées
                                     </span>
-                                    <p className="text-[10px] text-slate-400 font-medium mt-1">
-                                      Cochez la case pour valider à {presenceHeure}
-                                    </p>
                                   </div>
                                 )}
                               </td>
 
-                              {/* Progression Conduite */}
-                              <td className="px-3 py-3.5 whitespace-nowrap">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                                    <div
-                                      className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
-                                      style={{ width: `${Math.min(pct, 100)}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-[10px] font-semibold text-slate-500">
-                                    {c.nb_conduites_effectuees || 0}/{c.nb_conduites_prevues || 20}
-                                  </span>
-                                </div>
-                              </td>
-
-                              {/* Action WhatsApp */}
+                              {/* Colonne 5 : Action WhatsApp */}
                               <td className="px-4 py-3.5 text-right whitespace-nowrap">
                                 <a
                                   href={`https://wa.me/228${(c.contact || '').replace(/\s+/g, '')}?text=${encodeURIComponent(msgConfirmation)}`}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg border transition ${
+                                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition shadow-2xs cursor-pointer ${
                                     isPresent
-                                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
-                                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                                   }`}
-                                  title="Envoyer notification de présence / absence par WhatsApp"
+                                  title="Envoyer confirmation par WhatsApp"
                                 >
-                                  <MessageSquare className="w-3 h-3 text-emerald-600" />
+                                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
                                   <span>WhatsApp</span>
                                 </a>
                               </td>
@@ -2350,7 +2390,7 @@ export default function App() {
 
                         {filteredPresenceCandidats.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="text-center py-8 text-slate-400 text-xs">
+                            <td colSpan={5} className="text-center py-10 text-slate-400 text-xs">
                               Aucun élève trouvé pour cette sélection.
                             </td>
                           </tr>
