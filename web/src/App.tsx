@@ -2450,7 +2450,7 @@ export default function App() {
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-200/60">
                   <span className="text-sm font-bold text-blue-900 flex items-center gap-1.5">
-                    <span>👤</span> Identité & Coordonnées
+                    Identité & Coordonnées
                   </span>
                 </div>
 
@@ -2576,7 +2576,7 @@ export default function App() {
               <div className="bg-indigo-50/50 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-indigo-200/60">
                   <span className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
-                    <span>🎓</span> Formation & Statut Examen
+                    Formation & Statut Examen
                   </span>
                 </div>
 
@@ -2588,11 +2588,11 @@ export default function App() {
                       defaultValue={editingCandidat.categorie}
                       className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-blue-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
                     >
-                      <option value="B">Permis B (Auto)</option>
-                      <option value="A">Permis A (Moto)</option>
-                      <option value="C">Permis C (Poids Lourd)</option>
-                      <option value="D">Permis D (Transport)</option>
-                      <option value="E">Permis E (Remorque)</option>
+                      <option value="A">Permis A</option>
+                      <option value="B">Permis B</option>
+                      <option value="C">Permis C</option>
+                      <option value="D">Permis D</option>
+                      <option value="E">Permis E</option>
                     </select>
                   </div>
                   <div>
@@ -2632,9 +2632,9 @@ export default function App() {
                       defaultValue={editingCandidat.type_formation || 'COMPLETE'}
                       className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
                     >
-                      <option value="COMPLETE">Formation Complète (Code + Conduite)</option>
-                      <option value="CONDUITE_SEULE">Conduite Uniquement (Code déjà acquis)</option>
-                      <option value="CODE_SEUL">Code Théorique Uniquement</option>
+                      <option value="COMPLETE">Formation Complète</option>
+                      <option value="CONDUITE_SEULE">Achat de Conduite Uniquement</option>
+                      <option value="RECYCLAGE">Recyclage</option>
                     </select>
                   </div>
                   <div>
@@ -2656,7 +2656,7 @@ export default function App() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Conduite */}
                 <div className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 space-y-3">
-                  <span className="text-xs font-bold text-amber-950 block">🚗 Séances de Conduite</span>
+                  <span className="text-xs font-bold text-amber-950 block">Séances de Conduite</span>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Effectuées</label>
                     <input
@@ -2681,7 +2681,7 @@ export default function App() {
 
                 {/* Scolarité */}
                 <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
-                  <span className="text-xs font-bold text-emerald-950 block">💰 Règlement Scolarité</span>
+                  <span className="text-xs font-bold text-emerald-950 block">Règlement Scolarité</span>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Montant Total (FCFA)</label>
                     <input
@@ -2987,9 +2987,9 @@ export default function App() {
             <form onSubmit={handleAddCandidat} className="p-6 space-y-6">
               {/* SECTION 1 : IDENTITÉ */}
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-200/60">
-                  <span className="text-sm font-bold text-blue-900 flex items-center gap-1.5">
-                    <span>👤</span> Identité du Candidat
+                <div className="pb-2 border-b border-slate-200/60">
+                  <span className="text-sm font-bold text-blue-900">
+                    Identité du Candidat
                   </span>
                 </div>
 
@@ -3022,7 +3022,7 @@ export default function App() {
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        <span>♂ Homme</span>
+                        <span>Homme</span>
                       </button>
                       <button
                         type="button"
@@ -3033,7 +3033,7 @@ export default function App() {
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        <span>♀ Femme</span>
+                        <span>Femme</span>
                       </button>
                     </div>
                     <input type="hidden" name="sexe" value={newCandSexe} />
@@ -3120,9 +3120,9 @@ export default function App() {
 
               {/* SECTION 2 : FORMATION */}
               <div className="bg-indigo-50/50 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-indigo-200/60">
-                  <span className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
-                    <span>🎓</span> Formation & Permis
+                <div className="pb-2 border-b border-indigo-200/60">
+                  <span className="text-sm font-bold text-indigo-900">
+                    Formation & Permis
                   </span>
                 </div>
 
@@ -3135,13 +3135,10 @@ export default function App() {
                     name="type_formation"
                     className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer shadow-xs"
                   >
-                    <option value="COMPLETE">Formation Complète - Code + Conduite (Standard)</option>
-                    <option value="CONDUITE_SEULE">Séances de Conduite Uniquement (Code déjà obtenu)</option>
-                    <option value="CODE_SEUL">Formation Code Uniquement (Révision théorique)</option>
+                    <option value="COMPLETE">Formation Complète</option>
+                    <option value="CONDUITE_SEULE">Achat de Conduite Uniquement</option>
+                    <option value="RECYCLAGE">Recyclage</option>
                   </select>
-                  <p className="text-[11px] text-indigo-700 mt-1 font-medium">
-                    ℹ️ « Conduite Uniquement » = candidat ayant déjà validé le code et achetant des séances pratiques.
-                  </p>
                 </div>
 
                 {/* Grille Permis, Langue, Durée */}
@@ -3155,11 +3152,11 @@ export default function App() {
                       defaultValue="B"
                       className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-blue-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
                     >
-                      <option value="B">Permis B (Auto)</option>
-                      <option value="A">Permis A (Moto)</option>
-                      <option value="C">Permis C (Poids lourd)</option>
-                      <option value="D">Permis D (Transport)</option>
-                      <option value="E">Permis E (Remorque)</option>
+                      <option value="A">Permis A</option>
+                      <option value="B">Permis B</option>
+                      <option value="C">Permis C</option>
+                      <option value="D">Permis D</option>
+                      <option value="E">Permis E</option>
                     </select>
                   </div>
 
@@ -3215,9 +3212,9 @@ export default function App() {
 
               {/* SECTION 3 : RÈGLEMENT & PAIEMENT */}
               <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-emerald-200/60">
-                  <span className="text-sm font-bold text-emerald-900 flex items-center gap-1.5">
-                    <span>💰</span> Règlement & Scolarité
+                <div className="pb-2 border-b border-emerald-200/60">
+                  <span className="text-sm font-bold text-emerald-900">
+                    Règlement & Scolarité
                   </span>
                 </div>
 
@@ -3230,7 +3227,6 @@ export default function App() {
                       required
                       type="number"
                       name="montant_total"
-                      defaultValue="120000"
                       className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
                     />
                   </div>
@@ -3241,7 +3237,6 @@ export default function App() {
                     <input
                       type="number"
                       name="montant_paye"
-                      defaultValue="40000"
                       className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
                     />
                   </div>

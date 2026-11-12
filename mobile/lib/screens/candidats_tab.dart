@@ -49,10 +49,11 @@ class _CandidatsTabState extends State<CandidatsTab> {
     final contactController = TextEditingController();
     final adresseController = TextEditingController();
     final emailController = TextEditingController();
-    final totalController = TextEditingController(text: '120000');
-    final payeController = TextEditingController(text: '40000');
+    final totalController = TextEditingController();
+    final payeController = TextEditingController();
 
     String selectedCat = 'B';
+    String selectedTypeFormation = 'Formation Complète';
     String selectedAnnexe =
         widget.selectedAnnexe == 'Toutes' ? 'Tokoin Ramco (Siège)' : widget.selectedAnnexe;
     String selectedLangue = 'FRANCAIS';
@@ -182,7 +183,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                       children: [
                         // Section Identité
-                        _sectionTitle('👤 Identité'),
+                        _sectionTitle('Identité du Candidat'),
                         const SizedBox(height: 10),
 
                         fieldLabel('Nom de famille *'),
@@ -284,15 +285,31 @@ class _CandidatsTabState extends State<CandidatsTab> {
 
                         const SizedBox(height: 20),
                         // Section Formation
-                        _sectionTitle('🎓 Formation'),
+                        _sectionTitle('Formation & Permis'),
                         const SizedBox(height: 10),
+
+                        fieldLabel('Type de Formation'),
+                        _styledDropdown<String>(
+                          value: selectedTypeFormation,
+                          items: [
+                            'Formation Complète',
+                            'Achat de Conduite Uniquement',
+                            'Recyclage',
+                          ]
+                              .map((t) => DropdownMenuItem(
+                                  value: t, child: Text(t)))
+                              .toList(),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedTypeFormation = v!),
+                        ),
+                        const SizedBox(height: 14),
 
                         fieldLabel('Catégorie de Permis'),
                         _styledDropdown<String>(
                           value: selectedCat,
                           items: ['A', 'B', 'C', 'D', 'E']
                               .map((c) => DropdownMenuItem(
-                                  value: c, child: Text('Catégorie $c')))
+                                  value: c, child: Text('Permis $c')))
                               .toList(),
                           onChanged: (v) =>
                               setSheetState(() => selectedCat = v!),
@@ -336,7 +353,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
 
                         const SizedBox(height: 20),
                         // Section Paiement
-                        _sectionTitle('💰 Paiement'),
+                        _sectionTitle('Règlement & Scolarité'),
                         const SizedBox(height: 10),
 
                         Row(
@@ -752,7 +769,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
                         const SizedBox(height: 20),
 
                         // Section Séances
-                        _sectionTitle('🚗 Heures de Conduite'),
+                        _sectionTitle('Heures de Conduite'),
                         const SizedBox(height: 10),
 
                         fieldLabel('Raccourcis rapides :'),
@@ -841,7 +858,7 @@ class _CandidatsTabState extends State<CandidatsTab> {
 
                         const SizedBox(height: 20),
                         // Section Règlement
-                        _sectionTitle('💳 Règlement'),
+                        _sectionTitle('Règlement'),
                         const SizedBox(height: 10),
 
                         Row(

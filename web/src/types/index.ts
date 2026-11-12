@@ -4,7 +4,7 @@ export type StatutCandidat = 'INSCRIT' | 'ADMIS' | 'NON_ADMIS';
 export type Langue = 'FRANCAIS' | 'EWE' | 'MINA' | 'MOBA' | 'KOTOKOLI' | 'KABYE' | 'ANGLAIS';
 export type Sexe = 'MASCULIN' | 'FEMININ';
 export type TypeDepense = 'NORMALE' | 'FIXE' | 'SPECIALE_DG' | 'SECRETAIRE';
-export type TypeFormation = 'COMPLETE' | 'CONDUITE_SEULE' | 'CODE_SEUL';
+export type TypeFormation = 'COMPLETE' | 'CONDUITE_SEULE' | 'CODE_SEUL' | 'RECYCLAGE';
 
 export interface Candidat {
   id: string;

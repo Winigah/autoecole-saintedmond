@@ -166,7 +166,7 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                       children: [
                         const Text(
-                          '🏷️ Détails de l\'encaissement',
+                          'Détails de l\'encaissement',
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -456,7 +456,7 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                       children: [
                         const Text(
-                          '📂 Catégorisation & Motif',
+                          'Catégorisation & Motif',
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
