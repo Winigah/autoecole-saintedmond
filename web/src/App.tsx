@@ -5,8 +5,8 @@ import {
   Search, Download, RefreshCw, CheckCircle2, AlertCircle, MessageSquare, Calendar, Car,
   Pencil, Trash2, Clock, Check, CheckCheck, RotateCcw,
   KeyRound, LayoutGrid, List, Phone, Eye, EyeOff, Lock, Camera, ShieldCheck,
-  Wifi, WifiOff, MapPin, Building2,
-  UserPlus, ArrowDownLeft, ArrowUpRight
+  Wifi, WifiOff, MapPin, Building2, Banknote, TrendingDown,
+  UserPlus, ArrowDownLeft
 } from 'lucide-react';
 
 import type { Candidat, Depense, Recette, RoleUtilisateur, Sexe } from './types';
@@ -3872,67 +3872,89 @@ export default function App() {
 
       {/* Add Dépense Modal - Design Moderne */}
       {modalType === 'add_depense' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
             {/* En-tête */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="px-6 py-5 flex items-center justify-between bg-gradient-to-r from-rose-500 to-rose-600">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs">
-                  <ArrowUpRight className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-white/15 text-white flex items-center justify-center">
+                  <TrendingDown className="w-5 h-5" />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Enregistrer une Dépense</h3>
-                  <p className="text-xs text-slate-500 font-medium">Sortie de caisse • Auto-École Saint Edmond</p>
-                </div>
+                <h3 className="font-extrabold text-base text-white leading-tight">Enregistrer une Dépense</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddDepense} className="p-6 space-y-4">
+              {/* Catégorie */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Catégorie de Dépense *</label>
-                <select name="type" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 cursor-pointer">
-                  <option value="NORMALE">NORMALE (Carburant, entretien)</option>
-                  <option value="FIXE">FIXE (Loyer, salaires, eau/élec)</option>
-                  <option value="SPECIALE_DG">SPÉCIALE DG (Investissement, missions)</option>
-                  <option value="SECRETAIRE">SECRÉTAIRE (Papeterie, menus frais)</option>
+                <label className="block text-xs font-bold text-slate-700">
+                  Catégorie de Dépense <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  name="type"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 cursor-pointer transition"
+                >
+                  <option value="NORMALE">Normale - Carburant, entretien</option>
+                  <option value="FIXE">Fixe - Loyer, salaires, eau / élec</option>
+                  <option value="SPECIALE_DG">Spéciale DG - Investissement, missions</option>
+                  <option value="SECRETAIRE">Secrétariat - Papeterie, menus frais</option>
                 </select>
               </div>
 
+              {/* Intitulé */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Intitulé / Motif de la dépense *</label>
+                <label className="block text-xs font-bold text-slate-700">
+                  Intitulé / Motif <span className="text-rose-500">*</span>
+                </label>
                 <input
                   required
                   name="intitule"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition"
+                  placeholder="Ex : Achat carburant moniteur, Réparation véhicule..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition placeholder:text-slate-300 placeholder:font-normal"
                 />
               </div>
 
+              {/* Montant + Annexe */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">Montant décaissé (FCFA) *</label>
-                  <input
-                    required
-                    type="number"
-                    name="montant"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-600 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition"
-                  />
+                  <label className="block text-xs font-bold text-slate-700">
+                    Montant (FCFA) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Banknote className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      name="montant"
+                      placeholder="0"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-rose-600 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">Annexe concernée</label>
-                  <select name="annexe" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
-                    {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <select
+                      name="annexe"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 cursor-pointer transition"
+                    >
+                      {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+              {/* Actions */}
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setModalType(null)}
@@ -3945,7 +3967,7 @@ export default function App() {
                   className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-600/25 flex items-center gap-2 transition cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Enregistrer Dépense</span>
+                  <span>Enregistrer</span>
                 </button>
               </div>
             </form>
@@ -3955,57 +3977,73 @@ export default function App() {
 
       {/* Add Recette Modal - Design Moderne */}
       {modalType === 'add_recette' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
             {/* En-tête */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="px-6 py-5 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
+                <div className="w-10 h-10 rounded-2xl bg-white/15 text-white flex items-center justify-center">
                   <ArrowDownLeft className="w-5 h-5" />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Encaisser une Recette</h3>
-                  <p className="text-xs text-slate-500 font-medium">Entrée en caisse • Auto-École Saint Edmond</p>
-                </div>
+                <h3 className="font-extrabold text-base text-white leading-tight">Encaisser une Recette</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddRecette} className="p-6 space-y-4">
+              {/* Intitulé */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Intitulé de l'encaissement *</label>
+                <label className="block text-xs font-bold text-slate-700">
+                  Intitulé de l'encaissement <span className="text-rose-500">*</span>
+                </label>
                 <input
                   required
                   name="intitule"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                  placeholder="Ex : Inscription candidat, Paiement mensualité..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition placeholder:text-slate-300 placeholder:font-normal"
                 />
               </div>
 
+              {/* Montant + Annexe */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">Montant perçu (FCFA) *</label>
-                  <input
-                    required
-                    type="number"
-                    name="montant"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
-                  />
+                  <label className="block text-xs font-bold text-slate-700">
+                    Montant perçu (FCFA) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Banknote className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      name="montant"
+                      placeholder="0"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">Annexe concernée</label>
-                  <select name="annexe" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
-                    {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <select
+                      name="annexe"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 cursor-pointer transition"
+                    >
+                      {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+              {/* Actions */}
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setModalType(null)}
@@ -4018,7 +4056,7 @@ export default function App() {
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Encaisser Recette</span>
+                  <span>Encaisser</span>
                 </button>
               </div>
             </form>
