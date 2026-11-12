@@ -5,7 +5,8 @@ import {
   Search, Download, RefreshCw, CheckCircle2, AlertCircle, MessageSquare, Calendar, Car,
   Pencil, Trash2, Clock, CheckSquare, Check, XCircle,
   KeyRound, LayoutGrid, List, Phone, Eye, Lock, Camera,
-  Wifi, WifiOff
+  Wifi, WifiOff,
+  UserPlus, ArrowDownLeft, ArrowUpRight
 } from 'lucide-react';
 
 import type { Candidat, Depense, Recette, RoleUtilisateur, Sexe } from './types';
@@ -2420,277 +2421,299 @@ export default function App() {
 
       {/* ================= MODALS SYSTEM ================= */}
 
-      {/* Modal Modification Candidat */}
+      {/* Modal Modification Candidat - Design Moderne par Sections */}
       {modalType === 'edit_candidat' && editingCandidat && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl p-6 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+            {/* En-tête modal */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-xs z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
                   <Pencil className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-800">Modifier la Fiche Candidat</h3>
-                  <p className="text-xs text-slate-500">Mise à jour des informations administratives et de formation</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Modifier la Fiche Candidat</h3>
+                  <p className="text-xs text-slate-500 font-medium">Mise à jour des informations administratives et de scolarité</p>
                 </div>
               </div>
-              <button onClick={() => { setModalType(null); setEditingCandidat(null); }} className="text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={() => { setModalType(null); setEditingCandidat(null); }}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateCandidat} className="space-y-4">
-              {/* Photo & Sexe interactif */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex flex-col items-center shrink-0">
-                  <CandidateAvatar
-                    sexe={editCandSexe}
-                    photoUrl={editCandPhoto}
-                    size="xl"
-                    editable={true}
-                    onPhotoChange={(url) => setEditCandPhoto(url)}
-                  />
-                  <span className="text-[10px] text-slate-500 font-medium mt-1">
-                    Cliquer pour changer photo
+            <form onSubmit={handleUpdateCandidat} className="p-6 space-y-6">
+              {/* SECTION 1 : IDENTITÉ */}
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200/60">
+                  <span className="text-sm font-bold text-blue-900 flex items-center gap-1.5">
+                    <span>👤</span> Identité & Coordonnées
                   </span>
                 </div>
 
-                <div className="flex-1 w-full space-y-2">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Genre / Sexe du candidat
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditCandSexe('MASCULIN')}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
-                        editCandSexe === 'MASCULIN'
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span> Homme</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditCandSexe('FEMININ')}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
-                        editCandSexe === 'FEMININ'
-                          ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span> Femme</span>
-                    </button>
+                {/* Photo & Sexe interactif */}
+                <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex flex-col items-center shrink-0">
+                    <CandidateAvatar
+                      sexe={editCandSexe}
+                      photoUrl={editCandPhoto}
+                      size="xl"
+                      editable={true}
+                      onPhotoChange={(url) => setEditCandPhoto(url)}
+                    />
+                    <span className="text-[10px] text-slate-500 font-medium mt-1">
+                      Changer la photo
+                    </span>
                   </div>
-                  <input type="hidden" name="sexe" value={editCandSexe} />
-                  <p className="text-[11px] text-slate-500">
-                    Vous pouvez <strong>prendre une photo en direct</strong> via la webcam/caméra ou <strong>joindre un fichier</strong>.
-                  </p>
-                </div>
-              </div>
 
-              {/* Identité */}
-              <div className="grid grid-cols-2 gap-3">
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Genre / Sexe *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditCandSexe('MASCULIN')}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          editCandSexe === 'MASCULIN'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>♂ Homme</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditCandSexe('FEMININ')}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          editCandSexe === 'FEMININ'
+                            ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>♀ Femme</span>
+                      </button>
+                    </div>
+                    <input type="hidden" name="sexe" value={editCandSexe} />
+                    <p className="text-[11px] text-slate-500">
+                      Prenez une photo webcam en direct ou sélectionnez une photo sur votre ordinateur.
+                    </p>
+                  </div>
+                </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nom de famille</label>
-                  <input
-                    required
-                    name="nom"
-                    defaultValue={editingCandidat.nom}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm uppercase font-bold"
-                  />
+                {/* Nom & Prénom */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Nom de famille *</label>
+                    <input
+                      required
+                      name="nom"
+                      defaultValue={editingCandidat.nom}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm uppercase font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Prénom *</label>
+                    <input
+                      required
+                      name="prenom"
+                      defaultValue={editingCandidat.prenom}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Prénom</label>
-                  <input
-                    required
-                    name="prenom"
-                    defaultValue={editingCandidat.prenom}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold"
-                  />
-                </div>
-              </div>
 
-              {/* Contact & Annexe */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Téléphone (Contact)</label>
-                  <input
-                    required
-                    name="contact"
-                    defaultValue={editingCandidat.contact}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Annexe d'affectation</label>
+                {/* Contact & Annexe */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Téléphone (Contact) *</label>
+                    <input
+                      required
+                      type="tel"
+                      name="contact"
+                      defaultValue={editingCandidat.contact}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Annexe d'affectation</label>
                     <select
                       name="annexe"
                       defaultValue={editingCandidat.annexe}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-medium"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer"
                     >
                       {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
+                  </div>
+                </div>
+
+                {/* Adresse & Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Adresse / Ville</label>
+                    <input
+                      name="adresse"
+                      defaultValue={editingCandidat.adresse || ''}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Email (Optionnel)</label>
+                    <input
+                      type="email"
+                      name="email"
+                      defaultValue={editingCandidat.email || ''}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Adresse & Email */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Adresse / Ville</label>
-                  <input
-                    name="adresse"
-                    defaultValue={editingCandidat.adresse || ''}
-                    
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"
-                  />
+              {/* SECTION 2 : FORMATION & EXAMEN */}
+              <div className="bg-indigo-50/50 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-indigo-200/60">
+                  <span className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+                    <span>🎓</span> Formation & Statut Examen
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Email (Optionnel)</label>
-                  <input
-                    type="email"
-                    name="email"
-                    defaultValue={editingCandidat.email || ''}
-                    
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">Permis</label>
+                    <select
+                      name="categorie"
+                      defaultValue={editingCandidat.categorie}
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-blue-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="B">Permis B (Auto)</option>
+                      <option value="A">Permis A (Moto)</option>
+                      <option value="C">Permis C (Poids Lourd)</option>
+                      <option value="D">Permis D (Transport)</option>
+                      <option value="E">Permis E (Remorque)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">Langue</label>
+                    <select
+                      name="langue"
+                      defaultValue={editingCandidat.langue}
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="FRANCAIS">Français</option>
+                      <option value="EWE">Ewé</option>
+                      <option value="MINA">Mina</option>
+                      <option value="MOBA">Moba</option>
+                      <option value="KOTOKOLI">Kotokoli</option>
+                      <option value="KABYE">Kabyè</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">Statut Examen</label>
+                    <select
+                      name="statut"
+                      defaultValue={editingCandidat.statut}
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="INSCRIT">INSCRIT (En cours)</option>
+                      <option value="ADMIS">ADMIS (Succès)</option>
+                      <option value="NON_ADMIS">NON ADMIS (Ajourné)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">Type de Formation</label>
+                    <select
+                      name="type_formation"
+                      defaultValue={editingCandidat.type_formation || 'COMPLETE'}
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="COMPLETE">Formation Complète (Code + Conduite)</option>
+                      <option value="CONDUITE_SEULE">Conduite Uniquement (Code déjà acquis)</option>
+                      <option value="CODE_SEUL">Code Théorique Uniquement</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">Durée Formation</label>
+                    <select
+                      name="duree_formation_mois"
+                      defaultValue={editingCandidat.duree_formation_mois || 3}
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
+                        <option key={m} value={m}>{m} mois</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Permis, Langue, Statut */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Permis</label>
-                  <select
-                    name="categorie"
-                    defaultValue={editingCandidat.categorie}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-blue-600"
-                  >
-                    <option value="B">Permis B (Auto)</option>
-                    <option value="A">Permis A (Moto)</option>
-                    <option value="C">Permis C (Poids Lourd)</option>
-                    <option value="D">Permis D (Transport)</option>
-                    <option value="E">Permis E (Remorque)</option>
-                  </select>
+              {/* SECTION 3 : CONDUITE & FINANCES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Conduite */}
+                <div className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 space-y-3">
+                  <span className="text-xs font-bold text-amber-950 block">🚗 Séances de Conduite</span>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Effectuées</label>
+                    <input
+                      type="number"
+                      name="nb_conduites_effectuees"
+                      min="0"
+                      defaultValue={editingCandidat.nb_conduites_effectuees || 0}
+                      className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Prévues au total</label>
+                    <input
+                      type="number"
+                      name="nb_conduites_prevues"
+                      min="0"
+                      defaultValue={editingCandidat.nb_conduites_prevues || 20}
+                      className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-900"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Langue</label>
-                  <select
-                    name="langue"
-                    defaultValue={editingCandidat.langue}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"
-                  >
-                    <option value="FRANCAIS">Français</option>
-                    <option value="EWE">Ewé</option>
-                    <option value="MINA">Mina</option>
-                    <option value="MOBA">Moba</option>
-                    <option value="KOTOKOLI">Kotokoli</option>
-                    <option value="KABYE">Kabyè</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Statut Examen</label>
-                  <select
-                    name="statut"
-                    defaultValue={editingCandidat.statut}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold"
-                  >
-                    <option value="INSCRIT">INSCRIT (En cours)</option>
-                    <option value="ADMIS">ADMIS (Succès)</option>
-                    <option value="NON_ADMIS">NON ADMIS (Ajourné)</option>
-                  </select>
-                </div>
-              </div>
 
-
-
-              {/* Type de formation & Durée */}
-              <div className="grid grid-cols-2 gap-3 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
-                <div>
-                  <label className="block text-xs font-bold text-indigo-900 mb-1">Type de Formation</label>
-                  <select
-                    name="type_formation"
-                    defaultValue={editingCandidat.type_formation || 'COMPLETE'}
-                    className="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-sm font-semibold"
-                  >
-                    <option value="COMPLETE"> Formation Complète (Code + Conduite)</option>
-                    <option value="CONDUITE_SEULE"> Conduite Uniquement (Code déjà acquis)</option>
-                    <option value="CODE_SEUL"> Code Théorique Uniquement</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-indigo-900 mb-1">Durée Formation</label>
-                  <select
-                    name="duree_formation_mois"
-                    defaultValue={editingCandidat.duree_formation_mois || 3}
-                    className="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-sm font-semibold"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
-                      <option key={m} value={m}>{m} mois</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Suivi des séances de conduite */}
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Séances effectuées</label>
-                  <input
-                    type="number"
-                    name="nb_conduites_effectuees"
-                    min="0"
-                    defaultValue={editingCandidat.nb_conduites_effectuees || 0}
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Séances totales prévues</label>
-                  <input
-                    type="number"
-                    name="nb_conduites_prevues"
-                    min="0"
-                    defaultValue={editingCandidat.nb_conduites_prevues || 20}
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-800"
-                  />
-                </div>
-              </div>
-
-              {/* Règlement financier */}
-              <div className="grid grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Montant Total Scolarité (FCFA)</label>
-                  <input
-                    required
-                    type="number"
-                    name="montant_total"
-                    defaultValue={editingCandidat.montant_total}
-                    className="w-full bg-white border border-emerald-200 rounded-xl p-2.5 text-sm font-bold text-slate-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-emerald-800 mb-1">Montant Encaissé (FCFA)</label>
-                  <input
-                    required
-                    type="number"
-                    name="montant_paye"
-                    defaultValue={editingCandidat.montant_paye}
-                    className="w-full bg-white border border-emerald-200 rounded-xl p-2.5 text-sm font-bold text-emerald-700"
-                  />
+                {/* Scolarité */}
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
+                  <span className="text-xs font-bold text-emerald-950 block">💰 Règlement Scolarité</span>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Montant Total (FCFA)</label>
+                    <input
+                      required
+                      type="number"
+                      name="montant_total"
+                      defaultValue={editingCandidat.montant_total}
+                      className="w-full bg-white border border-emerald-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Montant Encaissé (FCFA)</label>
+                    <input
+                      required
+                      type="number"
+                      name="montant_paye"
+                      defaultValue={editingCandidat.montant_paye}
+                      className="w-full bg-white border border-emerald-200 rounded-xl px-3 py-2 text-sm font-bold text-emerald-700"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Code d'accès application */}
-              <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Code d'accès App Candidat</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Code d'accès App Candidat</label>
                   <input
                     id="input_edit_code_acces"
                     name="code_acces"
                     defaultValue={editingCandidat.code_acces || ''}
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2 text-sm font-mono font-bold text-indigo-700"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-mono font-bold text-indigo-700 tracking-wider"
                   />
                 </div>
                 <button
@@ -2699,36 +2722,38 @@ export default function App() {
                     const input = document.getElementById('input_edit_code_acces') as HTMLInputElement;
                     if (input) input.value = generateAccessCode();
                   }}
-                  className="mt-5 px-3 py-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-bold transition"
+                  className="sm:mt-5 px-4 py-2.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  Régénérer Code
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Régénérer</span>
                 </button>
               </div>
 
               {/* Boutons d'action */}
-              <div className="pt-3 border-t flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => handleDeleteCandidat(editingCandidat.id, `${editingCandidat.nom} ${editingCandidat.prenom}`)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-xl font-semibold transition"
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-xl font-bold transition cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Supprimer dossier</span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="w-full sm:w-auto flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => { setModalType(null); setEditingCandidat(null); }}
-                    className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
+                    className="px-4 py-2.5 text-sm text-slate-500 hover:bg-slate-100 rounded-xl font-semibold cursor-pointer"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 transition cursor-pointer flex items-center gap-2"
                   >
-                    Enregistrer les modifications
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Enregistrer</span>
                   </button>
                 </div>
               </div>
@@ -2737,336 +2762,507 @@ export default function App() {
         </div>
       )}
 
-      {/* Modal Achat Séances de Conduite Supplémentaires */}
+      {/* Modal Achat Séances de Conduite Supplémentaires - Design Moderne */}
       {modalType === 'add_supplement_conduite' && selectedCandidatForSupplement && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+            {/* En-tête */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-xs z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-xs">
                   <Car className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-800">Achat de Séances de Conduite en Supplément</h3>
-                  <p className="text-xs text-slate-500">Ajout d'heures pratiques pour un candidat déjà inscrit</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Séances de Conduite Supplémentaires</h3>
+                  <p className="text-xs text-slate-500 font-medium">Ajout d'heures de conduite & encaissement</p>
                 </div>
               </div>
-              <button onClick={() => setModalType(null)} className="text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={() => setModalType(null)}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Fiche récapitulative du candidat */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
-              <div>
-                <p className="font-bold text-slate-900 text-sm">{selectedCandidatForSupplement.nom} {selectedCandidatForSupplement.prenom}</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Permis {selectedCandidatForSupplement.categorie} • {selectedCandidatForSupplement.annexe} • Contact: {selectedCandidatForSupplement.contact}
-                </p>
+            <div className="p-6 space-y-5">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-extrabold text-slate-900 text-sm">
+                    {selectedCandidatForSupplement.nom} {selectedCandidatForSupplement.prenom}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Permis {selectedCandidatForSupplement.categorie} • {selectedCandidatForSupplement.annexe} • Tél: {selectedCandidatForSupplement.contact}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-xl">
+                    {selectedCandidatForSupplement.nb_conduites_effectuees || 0} / {selectedCandidatForSupplement.nb_conduites_prevues || 20} séances
+                  </span>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Quota actuel</p>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-lg">
-                  {selectedCandidatForSupplement.nb_conduites_effectuees || 0} / {selectedCandidatForSupplement.nb_conduites_prevues || 20} séances
-                </span>
-                <p className="text-[10px] text-slate-400 mt-0.5">Quota actuel</p>
-              </div>
-            </div>
 
-            <form onSubmit={handleAddSupplementConduite} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Nombre de séances à ajouter
-                </label>
-                <div className="flex gap-2 mb-2">
-                  {[2, 4, 6, 10].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => {
-                        const inputNb = document.getElementById('input_nb_seances') as HTMLInputElement;
+              <form onSubmit={handleAddSupplementConduite} className="space-y-5">
+                {/* Séances */}
+                <div className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center gap-1.5 pb-2 border-b border-amber-200/60">
+                    <span className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
+                      <span>🚗</span> Nombre de séances à ajouter
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    {[2, 4, 6, 10].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          const inputNb = document.getElementById('input_nb_seances') as HTMLInputElement;
+                          const inputPrix = document.getElementById('input_montant_supp') as HTMLInputElement;
+                          const inputPaye = document.getElementById('input_montant_verse') as HTMLInputElement;
+                          if (inputNb) inputNb.value = preset.toString();
+                          const total = preset * 5000;
+                          if (inputPrix) inputPrix.value = total.toString();
+                          if (inputPaye) inputPaye.value = total.toString();
+                        }}
+                        className="py-2 px-1 bg-white hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold rounded-xl transition cursor-pointer shadow-xs text-center"
+                      >
+                        +{preset} séances
+                      </button>
+                    ))}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-amber-950 mb-1">
+                      Nombre total de séances supplémentaires :
+                    </label>
+                    <input
+                      id="input_nb_seances"
+                      required
+                      type="number"
+                      name="nb_seances"
+                      min="1"
+                      max="50"
+                      defaultValue="4"
+                      onChange={(e) => {
+                        const nb = Number(e.target.value) || 0;
                         const inputPrix = document.getElementById('input_montant_supp') as HTMLInputElement;
                         const inputPaye = document.getElementById('input_montant_verse') as HTMLInputElement;
-                        if (inputNb) inputNb.value = preset.toString();
-                        const total = preset * 5000;
+                        const total = nb * 5000;
                         if (inputPrix) inputPrix.value = total.toString();
                         if (inputPaye) inputPaye.value = total.toString();
                       }}
-                      className="flex-1 py-1.5 px-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold rounded-lg transition"
-                    >
-                      +{preset} séances
-                    </button>
-                  ))}
+                      className="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition"
+                    />
+                  </div>
                 </div>
-                <input
-                  id="input_nb_seances"
-                  required
-                  type="number"
-                  name="nb_seances"
-                  min="1"
-                  max="50"
-                  defaultValue="4"
-                  onChange={(e) => {
-                    const nb = Number(e.target.value) || 0;
-                    const inputPrix = document.getElementById('input_montant_supp') as HTMLInputElement;
-                    const inputPaye = document.getElementById('input_montant_verse') as HTMLInputElement;
-                    const total = nb * 5000;
-                    if (inputPrix) inputPrix.value = total.toString();
-                    if (inputPaye) inputPaye.value = total.toString();
-                  }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-800"
-                />
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 bg-amber-50/50 p-3.5 rounded-xl border border-amber-200/80">
-                <div>
-                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                    Prix Total du supplément (FCFA)
-                  </label>
-                  <input
-                    id="input_montant_supp"
-                    required
-                    type="number"
-                    name="montant_supplement"
-                    defaultValue="20000"
-                    className="w-full bg-white border border-amber-200 rounded-xl p-2.5 text-sm font-bold text-slate-900"
-                  />
-                  <span className="text-[10px] text-amber-700 mt-0.5 block">5 000 F / séance conseillé</span>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                    Montant Encaissé ce jour (FCFA)
-                  </label>
-                  <input
-                    id="input_montant_verse"
-                    required
-                    type="number"
-                    name="montant_verse"
-                    defaultValue="20000"
-                    className="w-full bg-white border border-amber-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600"
-                  />
-                  <span className="text-[10px] text-emerald-700 mt-0.5 block">Acompte ou paiement total</span>
-                </div>
-              </div>
+                {/* Règlement financier */}
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center gap-1.5 pb-2 border-b border-emerald-200/60">
+                    <span className="text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                      <span>💳</span> Règlement Financier
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Mode de règlement</label>
-                  <select name="mode_paiement" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-medium">
-                    <option value="Espèces">Espèces (Caisse)</option>
-                    <option value="TMoney (+228)">TMoney</option>
-                    <option value="Flooz (+228)">Flooz</option>
-                    <option value="Virement Bancaire">Virement Bancaire</option>
-                    <option value="Chèque">Chèque</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Date du versement</label>
-                  <input
-                    type="date"
-                    name="date_operation"
-                    defaultValue={new Date().toISOString().split('T')[0]}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-medium"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Prix Total du supplément (FCFA) *
+                      </label>
+                      <input
+                        id="input_montant_supp"
+                        required
+                        type="number"
+                        name="montant_supplement"
+                        defaultValue="20000"
+                        className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                      />
+                      <span className="text-[10px] text-slate-500 mt-1 block">5 000 FCFA / séance conseillé</span>
+                    </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Motif / Observation</label>
-                <select name="motif" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-medium">
-                  <option value="Perfectionnement créneau et manœuvres">Perfectionnement créneau et manœuvres</option>
-                  <option value="Heures supplémentaires après échec examen">Heures supplémentaires après ajournement</option>
-                  <option value="Renforcement conduite circulation / route">Renforcement circulation et route</option>
-                  <option value="Séances supplémentaires à la demande de l'élève">À la demande du candidat</option>
-                </select>
-              </div>
+                    <div>
+                      <label className="block text-xs font-bold text-emerald-900 mb-1.5">
+                        Montant Versé ce jour (FCFA) *
+                      </label>
+                      <input
+                        id="input_montant_verse"
+                        required
+                        type="number"
+                        name="montant_verse"
+                        defaultValue="20000"
+                        className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                      />
+                      <span className="text-[10px] text-emerald-700 mt-1 block">Paiement total ou partiel</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="pt-3 border-t flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setModalType(null)}
-                  className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-md flex items-center gap-2 transition cursor-pointer"
-                >
-                  <Car className="w-4 h-4" />
-                  <span>Enregistrer & Générer Reçu</span>
-                </button>
-              </div>
-            </form>
+                {/* Mode & Date & Motif */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Mode de règlement</label>
+                      <select name="mode_paiement" className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
+                        <option value="Espèces">Espèces (Caisse)</option>
+                        <option value="TMoney (+228)">TMoney</option>
+                        <option value="Flooz (+228)">Flooz</option>
+                        <option value="Virement Bancaire">Virement Bancaire</option>
+                        <option value="Chèque">Chèque</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Date du versement</label>
+                      <input
+                        type="date"
+                        name="date_operation"
+                        defaultValue={new Date().toISOString().split('T')[0]}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Motif / Justificatif</label>
+                    <select name="motif" className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
+                      <option value="Perfectionnement créneau et manœuvres">Perfectionnement créneau et manœuvres</option>
+                      <option value="Heures supplémentaires après échec examen">Heures supplémentaires après ajournement</option>
+                      <option value="Renforcement conduite circulation / route">Renforcement circulation et route</option>
+                      <option value="Séances supplémentaires à la demande de l'élève">À la demande du candidat</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Boutons actions */}
+                <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-amber-600/25 flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <Car className="w-4 h-4" />
+                    <span>Valider & Générer Reçu</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Inscrire Candidat Modal */}
+      {/* Inscrire Candidat Modal - Design Moderne & Organisé par Sections */}
       {modalType === 'add_candidat' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b pb-3">
-              <h3 className="font-bold text-lg text-slate-800">Inscription d'un Nouveau Candidat</h3>
-              <button onClick={() => setModalType(null)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
+            {/* En-tête modal */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-xs z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Inscription d'un Nouveau Candidat</h3>
+                  <p className="text-xs text-slate-500 font-medium">Auto-École Saint Edmond • Enregistrement officiel</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalType(null)}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAddCandidat} className="space-y-4">
-              {/* Photo & Sexe interactif avec forme Homme/Femme */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex flex-col items-center shrink-0">
-                  <CandidateAvatar
-                    sexe={newCandSexe}
-                    photoUrl={newCandPhoto}
-                    size="xl"
-                    editable={true}
-                    onPhotoChange={(url) => setNewCandPhoto(url)}
-                  />
-                  <span className="text-[10px] text-slate-500 font-medium mt-1">
-                    Cliquer pour photo / webcam
+            <form onSubmit={handleAddCandidat} className="p-6 space-y-6">
+              {/* SECTION 1 : IDENTITÉ */}
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200/60">
+                  <span className="text-sm font-bold text-blue-900 flex items-center gap-1.5">
+                    <span>👤</span> Identité du Candidat
                   </span>
                 </div>
 
-                <div className="flex-1 w-full space-y-2">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Genre / Sexe du candidat
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setNewCandSexe('MASCULIN')}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
-                        newCandSexe === 'MASCULIN'
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span> Homme</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewCandSexe('FEMININ')}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
-                        newCandSexe === 'FEMININ'
-                          ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span> Femme</span>
-                    </button>
+                {/* Photo & Sexe interactif */}
+                <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex flex-col items-center shrink-0">
+                    <CandidateAvatar
+                      sexe={newCandSexe}
+                      photoUrl={newCandPhoto}
+                      size="xl"
+                      editable={true}
+                      onPhotoChange={(url) => setNewCandPhoto(url)}
+                    />
+                    <span className="text-[10px] text-slate-500 font-medium mt-1">
+                      Photo / Webcam
+                    </span>
                   </div>
-                  <input type="hidden" name="sexe" value={newCandSexe} />
-                  <p className="text-[11px] text-slate-500 leading-snug">
-                    L'avatar change de forme selon le sexe. Cliquez sur la caméra pour <strong>prendre directement une photo (Webcam)</strong> ou <strong>joindre un fichier</strong>.
+
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Genre / Sexe *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNewCandSexe('MASCULIN')}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          newCandSexe === 'MASCULIN'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>♂ Homme</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewCandSexe('FEMININ')}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          newCandSexe === 'FEMININ'
+                            ? 'bg-pink-600 text-white border-pink-600 shadow-sm'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>♀ Femme</span>
+                      </button>
+                    </div>
+                    <input type="hidden" name="sexe" value={newCandSexe} />
+                    <p className="text-[11px] text-slate-500">
+                      Cliquez sur la caméra pour prendre directement une photo ou joindre un fichier.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Nom & Prénom */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Nom de famille <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      required
+                      name="nom"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm uppercase font-semibold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Prénom <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      required
+                      name="prenom"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                </div>
+
+                {/* Téléphone & Date d'inscription */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Téléphone (Contact) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      required
+                      type="tel"
+                      name="contact"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Date d'inscription <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      required
+                      type="date"
+                      name="date_inscription"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Adresse & Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Adresse / Ville du candidat
+                    </label>
+                    <input
+                      name="adresse"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Email (Optionnel)
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2 : FORMATION */}
+              <div className="bg-indigo-50/50 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-indigo-200/60">
+                  <span className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+                    <span>🎓</span> Formation & Permis
+                  </span>
+                </div>
+
+                {/* Type de Formation */}
+                <div>
+                  <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                    Type de Formation
+                  </label>
+                  <select
+                    name="type_formation"
+                    className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer shadow-xs"
+                  >
+                    <option value="COMPLETE">Formation Complète - Code + Conduite (Standard)</option>
+                    <option value="CONDUITE_SEULE">Séances de Conduite Uniquement (Code déjà obtenu)</option>
+                    <option value="CODE_SEUL">Formation Code Uniquement (Révision théorique)</option>
+                  </select>
+                  <p className="text-[11px] text-indigo-700 mt-1 font-medium">
+                    ℹ️ « Conduite Uniquement » = candidat ayant déjà validé le code et achetant des séances pratiques.
                   </p>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe d'inscription</label>
+                {/* Grille Permis, Langue, Durée */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                      Catégorie Permis
+                    </label>
+                    <select
+                      name="categorie"
+                      defaultValue="B"
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-blue-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="B">Permis B (Auto)</option>
+                      <option value="A">Permis A (Moto)</option>
+                      <option value="C">Permis C (Poids lourd)</option>
+                      <option value="D">Permis D (Transport)</option>
+                      <option value="E">Permis E (Remorque)</option>
+                    </select>
+                  </div>
 
-                <select name="annexe" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-medium">
-                  {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                      Langue
+                    </label>
+                    <select
+                      name="langue"
+                      defaultValue="FRANCAIS"
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      <option value="FRANCAIS">Français</option>
+                      <option value="EWE">Ewé</option>
+                      <option value="MINA">Mina</option>
+                      <option value="MOBA">Moba</option>
+                      <option value="KOTOKOLI">Kotokoli</option>
+                      <option value="KABYE">Kabyè</option>
+                    </select>
+                  </div>
 
-              {/* Type de Formation - champ clé */}
-              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-3">
-                <label className="block text-xs font-bold text-indigo-700 mb-2">Type de Formation</label>
-                <select name="type_formation" className="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
-                  <option value="COMPLETE">Formation Complète - Code + Conduite (Standard)</option>
-                  <option value="CONDUITE_SEULE">Séances de Conduite Uniquement (Code déjà obtenu)</option>
-                  <option value="CODE_SEUL">Formation Code Uniquement (Révision théorique)</option>
-                </select>
-                <p className="text-[11px] text-indigo-600 mt-1.5 font-medium">
-                  ℹ️ « Conduite Uniquement » = candidat ayant déjà le code et qui achète des séances pratiques.
-                </p>
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                      Durée Formation
+                    </label>
+                    <select
+                      name="duree_formation_mois"
+                      defaultValue="3"
+                      className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                        <option key={m} value={m}>{m} mois</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
+                {/* Annexe d'inscription */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Nom de famille</label>
-                  <input required name="nom"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm uppercase" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Prénom</label>
-                  <input required name="prenom"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Téléphone (Contact)</label>
-                  <input required name="contact"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Date inscription</label>
-                  <input type="date" name="date_inscription" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Adresse / Ville du candidat</label>
-                  <input name="adresse"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Email / Optionnel</label>
-                  <input type="email" name="email"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Permis</label>
-                  <select name="categorie" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold">
-                    <option value="B">Permis B (Auto)</option>
-                    <option value="A">Permis A (Moto)</option>
-                    <option value="C">Permis C (Poids lourd)</option>
-                    <option value="D">Permis D (Transport)</option>
-                    <option value="E">Permis E (Remorque)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Langue</label>
-                  <select name="langue" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
-                    <option value="FRANCAIS">Français</option>
-                    <option value="EWE">Ewé</option>
-                    <option value="MINA">Mina</option>
-                    <option value="MOBA">Moba</option>
-                    <option value="KOTOKOLI">Kotokoli</option>
-                    <option value="KABYE">Kabyè</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Durée Formation</label>
-                  <select name="duree_formation_mois" defaultValue="3" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold text-slate-700">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
-                      <option key={m} value={m}>{m} mois</option>
+                  <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                    Annexe d'inscription
+                  </label>
+                  <select
+                    name="annexe"
+                    className="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                  >
+                    {annexesList.map((a) => (
+                      <option key={a} value={a}>{a}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-
-              <div className="grid grid-cols-2 gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Montant Total en FCFA</label>
-                  <input required type="number" name="montant_total" defaultValue="120000" className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm font-bold" />
+              {/* SECTION 3 : RÈGLEMENT & PAIEMENT */}
+              <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-emerald-200/60">
+                  <span className="text-sm font-bold text-emerald-900 flex items-center gap-1.5">
+                    <span>💰</span> Règlement & Scolarité
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Montant Payé en FCFA</label>
-                  <input type="number" name="montant_paye" defaultValue="40000" className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Montant Total de la formation (FCFA) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      required
+                      type="number"
+                      name="montant_total"
+                      defaultValue="120000"
+                      className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-emerald-900 mb-1.5">
+                      Premier versement encaissé (FCFA)
+                    </label>
+                    <input
+                      type="number"
+                      name="montant_paye"
+                      defaultValue="40000"
+                      className="w-full bg-white border border-emerald-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">
+              {/* BOUTONS ACTIONS */}
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setModalType(null)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
                   Annuler
                 </button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md">
-                  Valider Inscription
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Valider l'Inscription</span>
                 </button>
               </div>
             </form>
@@ -3074,161 +3270,325 @@ export default function App() {
         </div>
       )}
 
-      {/* Add Dépense Modal */}
+      {/* Add Dépense Modal - Design Moderne */}
       {modalType === 'add_depense' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="font-bold text-lg text-slate-800 mb-4 border-b pb-3">Enregistrer une Dépense</h3>
-            <form onSubmit={handleAddDepense} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Catégorie de Dépense</label>
-                <select name="type" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+            {/* En-tête */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs">
+                  <ArrowUpRight className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Enregistrer une Dépense</h3>
+                  <p className="text-xs text-slate-500 font-medium">Sortie de caisse • Auto-École Saint Edmond</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalType(null)}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddDepense} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Catégorie de Dépense *</label>
+                <select name="type" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 cursor-pointer">
                   <option value="NORMALE">NORMALE (Carburant, entretien)</option>
                   <option value="FIXE">FIXE (Loyer, salaires, eau/élec)</option>
                   <option value="SPECIALE_DG">SPÉCIALE DG (Investissement, missions)</option>
                   <option value="SECRETAIRE">SECRÉTAIRE (Papeterie, menus frais)</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé / Motif</label>
-                <input required name="intitule"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Intitulé / Motif de la dépense *</label>
+                <input
+                  required
+                  name="intitule"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Montant décaissé (FCFA) *</label>
+                  <input
+                    required
+                    type="number"
+                    name="montant"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-600 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition"
+                  />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
-                  <select name="annexe" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Annexe concernée</label>
+                  <select name="annexe" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
                     {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold">Enregistrer</button>
+
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setModalType(null)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-600/25 flex items-center gap-2 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Enregistrer Dépense</span>
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Add Recette Modal */}
+      {/* Add Recette Modal - Design Moderne */}
       {modalType === 'add_recette' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="font-bold text-lg text-slate-800 mb-4 border-b pb-3">Enregistrer une Recette Manuelle</h3>
-            <form onSubmit={handleAddRecette} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé de l'encaissement</label>
-                <input required name="intitule"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant"  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+            {/* En-tête */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
+                  <ArrowDownLeft className="w-5 h-5" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
-                  <select name="annexe" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Encaisser une Recette</h3>
+                  <p className="text-xs text-slate-500 font-medium">Entrée en caisse • Auto-École Saint Edmond</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalType(null)}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddRecette} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Intitulé de l'encaissement *</label>
+                <input
+                  required
+                  name="intitule"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Montant perçu (FCFA) *</label>
+                  <input
+                    required
+                    type="number"
+                    name="montant"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Annexe concernée</label>
+                  <select name="annexe" className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
                     {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold">Encaisser</button>
+
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setModalType(null)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Encaisser Recette</span>
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      
-      {/* Modal Modifier Dépense */}
+      {/* Modal Modifier Dépense - Design Moderne */}
       {modalType === 'edit_depense' && editingDepense && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b pb-3 mb-4">
-              <h3 className="font-bold text-lg text-slate-800">Corriger / Modifier la Dépense</h3>
-              <button type="button" onClick={() => { setModalType(null); setEditingDepense(null); }} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Corriger la Dépense</h3>
+                  <p className="text-xs text-slate-500 font-medium">Modification de la pièce comptable</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setModalType(null); setEditingDepense(null); }}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateDepense} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Catégorie de Dépense</label>
-                <select name="type" defaultValue={editingDepense.type} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+
+            <form onSubmit={handleUpdateDepense} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Catégorie de Dépense</label>
+                <select name="type" defaultValue={editingDepense.type} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
                   <option value="NORMALE">NORMALE (Carburant, entretien)</option>
                   <option value="FIXE">FIXE (Loyer, salaires, eau/élec)</option>
                   <option value="SPECIALE_DG">SPÉCIALE DG (Investissement, missions)</option>
                   <option value="SECRETAIRE">SECRÉTAIRE (Papeterie, menus frais)</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé / Motif</label>
-                <input required name="intitule" defaultValue={editingDepense.intitule} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Intitulé / Motif</label>
+                <input
+                  required
+                  name="intitule"
+                  defaultValue={editingDepense.intitule}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant" defaultValue={editingDepense.montant} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-rose-600" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Montant (FCFA)</label>
+                  <input
+                    required
+                    type="number"
+                    name="montant"
+                    defaultValue={editingDepense.montant}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                  />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
-                  <select name="annexe" defaultValue={editingDepense.annexe} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Annexe</label>
+                  <select name="annexe" defaultValue={editingDepense.annexe} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
                     {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
-                <input required type="date" name="date" defaultValue={editingDepense.date} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Date d'opération</label>
+                <input
+                  required
+                  type="date"
+                  name="date"
+                  defaultValue={editingDepense.date}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 cursor-pointer"
+                />
               </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => { setModalType(null); setEditingDepense(null); }} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold">Enregistrer</button>
+
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => { setModalType(null); setEditingDepense(null); }}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Enregistrer</span>
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Modifier Recette */}
+      {/* Modal Modifier Recette - Design Moderne */}
       {modalType === 'edit_recette' && editingRecette && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b pb-3 mb-4">
-              <h3 className="font-bold text-lg text-slate-800">Corriger / Modifier la Recette</h3>
-              <button type="button" onClick={() => { setModalType(null); setEditingRecette(null); }} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Corriger la Recette</h3>
+                  <p className="text-xs text-slate-500 font-medium">Modification de la recette encaissée</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setModalType(null); setEditingRecette(null); }}
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateRecette} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Intitulé de l'encaissement</label>
-                <input required name="intitule" defaultValue={editingRecette.intitule} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
+
+            <form onSubmit={handleUpdateRecette} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Intitulé de l'encaissement</label>
+                <input
+                  required
+                  name="intitule"
+                  defaultValue={editingRecette.intitule}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Montant (FCFA)</label>
-                  <input required type="number" name="montant" defaultValue={editingRecette.montant} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-600" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Montant (FCFA)</label>
+                  <input
+                    required
+                    type="number"
+                    name="montant"
+                    defaultValue={editingRecette.montant}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                  />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Annexe</label>
-                  <select name="annexe" defaultValue={editingRecette.annexe} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Annexe</label>
+                  <select name="annexe" defaultValue={editingRecette.annexe} className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 cursor-pointer">
                     {annexesList.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
-                <input required type="date" name="date" defaultValue={editingRecette.date} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm" />
-              </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button type="button" onClick={() => { setModalType(null); setEditingRecette(null); }} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold">Enregistrer</button>
+
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => { setModalType(null); setEditingRecette(null); }}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Enregistrer</span>
+                </button>
               </div>
             </form>
           </div>
@@ -3399,167 +3759,169 @@ export default function App() {
 
       {/* Password change modal (DG et Secrétaire) */}
       {passwordModalOpen && (
-
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-slate-800">Modifier mon Mot de Passe</h3>
-                  <p className="text-xs text-slate-500">
-                    Compte : <strong>{role === 'DG' ? 'Directeur Général (DG)' : 'Secrétariat'}</strong>
-                  </p>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Modifier mon Mot de Passe</h3>
+                  <p className="text-xs text-slate-500 font-medium">Sécurité du compte • ${role === 'DG' ? 'Direction Générale' : 'Secrétariat'}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setPasswordModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {passwordError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{passwordError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Ancien mot de passe actuel
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    placeholder="Entrez votre mot de passe actuel"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+            <div className="p-6 space-y-4">
+              {passwordError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{passwordError}</span>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Nouveau mot de passe
-                </label>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    minLength={4}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min. 4 caractères"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Mot de passe actuel *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="password"
+                      required
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Confirmer le nouveau mot de passe
-                </label>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Retapez le nouveau mot de passe"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Nouveau mot de passe *
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="password"
+                      required
+                      minLength={4}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t">
-                <button
-                  type="button"
-                  onClick={() => setPasswordModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition cursor-pointer"
-                >
-                  Enregistrer le mot de passe
-                </button>
-              </div>
-            </form>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Confirmer le nouveau mot de passe *
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setPasswordModalOpen(false)}
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Enregistrer</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Modal Création Nouvelle Annexe */}
       {modalType === 'add_annexe' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-600" />
-                <span>Créer une Nouvelle Annexe</span>
-              </h3>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900 leading-tight">Créer une Nouvelle Annexe</h3>
+                  <p className="text-xs text-slate-500 font-medium">Auto-École Saint Edmond • Expansion</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Actuellement le siège unique est <strong>Tokoin Ramco (Siège)</strong>. Vous pouvez créer de nouvelles annexes à tout moment lorsqu'elles ouvriront.
-            </p>
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-slate-500 bg-blue-50/60 border border-blue-200/60 rounded-xl p-3 leading-relaxed">
+                Le siège principal officiel est <strong>Tokoin Ramco (Siège)</strong>. Vous pouvez enregistrer ici les nouvelles annexes de l'auto-école dès leur mise en service.
+              </p>
 
-            <form onSubmit={handleAddAnnexe} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nom de l'Annexe / Quartier
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newAnnexeName}
-                  onChange={(e) => setNewAnnexeName(e.target.value)}
-                  
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <form onSubmit={handleAddAnnexe} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Nom de l'Annexe / Quartier *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAnnexeName}
+                    onChange={(e) => setNewAnnexeName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                  />
+                </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t">
-                <button
-                  type="button"
-                  onClick={() => setModalType(null)}
-                  className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition cursor-pointer"
-                >
-                  Ajouter l'Annexe
-                </button>
-              </div>
-            </form>
+                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Créer l'Annexe</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
