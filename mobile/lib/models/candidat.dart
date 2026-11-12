@@ -14,6 +14,13 @@ class Candidat {
   final String dateInscription;
   final int? dureeFormationMois;
   final String statut;
+  final String typeFormation;
+  final int nbConduitesPrevues;
+  final int nbConduitesEffectuees;
+  final String? dateExamenCode;
+  final String statutExamenCode;
+  final String? dateExamenConduite;
+  final String statutExamenConduite;
 
   final String? codeAcces;
   final String? photoUrl;
@@ -34,6 +41,13 @@ class Candidat {
     required this.dateInscription,
     this.dureeFormationMois,
     required this.statut,
+    this.typeFormation = 'COMPLETE',
+    this.nbConduitesPrevues = 12,
+    this.nbConduitesEffectuees = 0,
+    this.dateExamenCode,
+    this.statutExamenCode = 'NON_PROGRAMME',
+    this.dateExamenConduite,
+    this.statutExamenConduite = 'NON_PROGRAMME',
     this.codeAcces,
     this.photoUrl,
   });
@@ -58,6 +72,13 @@ class Candidat {
       dateInscription: json['date_inscription'] ?? '',
       dureeFormationMois: json['duree_formation_mois'],
       statut: json['statut'] ?? 'INSCRIT',
+      typeFormation: json['type_formation'] ?? 'COMPLETE',
+      nbConduitesPrevues: json['nb_conduites_prevues'] ?? 12,
+      nbConduitesEffectuees: json['nb_conduites_effectuees'] ?? 0,
+      dateExamenCode: json['date_examen_code'],
+      statutExamenCode: json['statut_examen_code'] ?? 'NON_PROGRAMME',
+      dateExamenConduite: json['date_examen_conduite'],
+      statutExamenConduite: json['statut_examen_conduite'] ?? 'NON_PROGRAMME',
       codeAcces: json['code_acces'],
       photoUrl: json['photo_url'],
     );
@@ -80,6 +101,13 @@ class Candidat {
       'date_inscription': dateInscription,
       'duree_formation_mois': dureeFormationMois,
       'statut': statut,
+      'type_formation': typeFormation,
+      'nb_conduites_prevues': nbConduitesPrevues,
+      'nb_conduites_effectuees': nbConduitesEffectuees,
+      'date_examen_code': dateExamenCode,
+      'statut_examen_code': statutExamenCode,
+      'date_examen_conduite': dateExamenConduite,
+      'statut_examen_conduite': statutExamenConduite,
       'code_acces': codeAcces,
       'photo_url': photoUrl,
     };

@@ -459,6 +459,20 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                         final messenger = ScaffoldMessenger.of(context);
                                         setSheetState(() => isSaving = true);
 
+                                        final typeFormationCode = selectedTypeFormation == 'Recyclage'
+                                            ? 'RECYCLAGE'
+                                            : selectedTypeFormation == 'Achat de Conduite Uniquement'
+                                                ? 'CONDUITE_SEULE'
+                                                : 'COMPLETE';
+
+                                        final nbPrevues = selectedTypeFormation == 'Recyclage'
+                                            ? 7
+                                            : selectedTypeFormation == 'Achat de Conduite Uniquement'
+                                                ? 0
+                                                : selectedCat == 'A'
+                                                    ? 14
+                                                    : 12;
+
                                         final newCand = Candidat(
                                           id: DateTime.now()
                                               .millisecondsSinceEpoch
@@ -487,6 +501,11 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                               .split('T')[0],
                                           dureeFormationMois: selectedDureeMois,
                                           statut: 'INSCRIT',
+                                          typeFormation: typeFormationCode,
+                                          nbConduitesPrevues: nbPrevues,
+                                          nbConduitesEffectuees: 0,
+                                          statutExamenCode: typeFormationCode == 'CONDUITE_SEULE' ? 'ADMIS' : 'NON_PROGRAMME',
+                                          statutExamenConduite: 'NON_PROGRAMME',
                                         );
 
                                         await DatabaseService.instance.addCandidatAsync(
