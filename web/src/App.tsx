@@ -4546,7 +4546,6 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-base text-white leading-tight">Nouvelle Annexe</h3>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">Auto-École Saint Edmond</p>
                 </div>
               </div>
               <button
@@ -4559,13 +4558,6 @@ export default function App() {
             </div>
 
             <div className="p-6 space-y-5">
-              {/* Info siège */}
-              <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-4">
-                <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  Le siège principal est <strong className="font-bold">Tokoin Ramco (Siège)</strong>. Enregistrez ici chaque nouvelle annexe dès sa mise en service.
-                </p>
-              </div>
 
               <form onSubmit={handleAddAnnexe} className="space-y-4">
                 {/* Nom de l'annexe */}
