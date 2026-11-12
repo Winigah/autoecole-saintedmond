@@ -1041,44 +1041,44 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-5 py-3.5 flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-5 py-3 flex items-center justify-between shadow-xs gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-bold text-slate-800">{activeTab}</h2>
+            <h2 className="text-lg font-bold text-slate-800">{activeTab}</h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             {/* Date range filter */}
-            <div className="hidden xl:flex items-center gap-2 text-xs bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
-              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+            <div className="hidden xl:flex items-center gap-1.5 text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="bg-transparent text-slate-700 font-medium focus:outline-none"
+                className="bg-transparent text-slate-700 font-medium focus:outline-none text-xs"
               />
-              <span className="text-slate-400">à</span>
+              <span className="text-slate-300">-</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="bg-transparent text-slate-700 font-medium focus:outline-none"
+                className="bg-transparent text-slate-700 font-medium focus:outline-none text-xs"
               />
             </div>
 
             {/* Annexe selector dynamique + Bouton Ajouter Annexe (pour le DG) */}
             <div className="hidden sm:flex items-center gap-1.5">
-              <div className="flex items-center gap-2 text-sm bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                <span className="text-slate-500 font-medium">Agence / Siège :</span>
+              <div className="flex items-center gap-1.5 text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                <span className="text-slate-400 font-medium shrink-0 hidden lg:inline">Siège :</span>
                 <select
                   value={annexeFilter}
                   onChange={(e) => setAnnexeFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-slate-700 focus:outline-none cursor-pointer"
+                  className="bg-transparent font-semibold text-slate-700 focus:outline-none cursor-pointer text-xs"
                 >
                   <option value="Toutes">Toutes les agences</option>
                   {annexesList.map((a) => (
@@ -1092,28 +1092,28 @@ export default function App() {
                   type="button"
                   onClick={() => setModalType('add_annexe')}
                   title="Créer une nouvelle annexe"
-                  className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+                  className="flex items-center gap-1 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 border border-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Nouvelle Annexe</span>
+                  <Plus className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span className="hidden md:inline">Annexe</span>
                 </button>
               )}
             </div>
 
-            {/* Indicateur de statut Offline-First / Cloud Sync */}
-            <div 
+            {/* Indicateur de statut En ligne / Hors ligne */}
+            <div
               onClick={() => {
                 if (syncStatus === 'online_synced') {
-                  showToast('Cloud actif : Données synchronisées avec Supabase en temps réel.');
+                  showToast('Données synchronisées en temps réel avec le serveur.');
                 } else if (syncStatus === 'syncing') {
-                  showToast('Synchronisation en cours avec le serveur cloud...');
+                  showToast('Synchronisation en cours avec le serveur...');
                 } else {
-                  showToast('Mode Hors Ligne : Données protégées et stockées localement sur cet appareil.');
+                  showToast('Mode Hors Ligne : Données stockées localement sur cet appareil.');
                 }
               }}
-              title="Statut de synchronisation des données (cliquez pour infos)"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition select-none ${
-                syncStatus === 'online_synced' 
+              title="Statut de synchronisation (cliquez pour infos)"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition select-none shrink-0 ${
+                syncStatus === 'online_synced'
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                   : syncStatus === 'syncing'
                   ? 'bg-blue-50 text-blue-700 border-blue-200 animate-pulse'
@@ -1122,18 +1122,18 @@ export default function App() {
             >
               {syncStatus === 'online_synced' ? (
                 <>
-                  <Wifi className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="hidden md:inline">En ligne (Cloud)</span>
+                  <Wifi className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span className="hidden md:inline">En ligne</span>
                 </>
               ) : syncStatus === 'syncing' ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 text-blue-600 animate-spin" />
-                  <span className="hidden md:inline">Synchronisation...</span>
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin shrink-0" />
+                  <span className="hidden md:inline">Synchro...</span>
                 </>
               ) : (
                 <>
-                  <WifiOff className="w-3.5 h-3.5 text-amber-600" />
-                  <span className="hidden md:inline">Hors ligne (Local)</span>
+                  <WifiOff className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span className="hidden md:inline">Hors ligne</span>
                 </>
               )}
             </div>
@@ -1143,22 +1143,22 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleInstallApp}
-                title="Installer le logiciel sur votre bureau"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition"
+                title="Installer l'application sur votre bureau"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition shrink-0"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Installer l'application</span>
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Installer</span>
               </button>
             )}
 
-            {/* Quick action button based on tab */}
+            {/* Bouton d'action rapide selon l'onglet */}
             {activeTab === 'Candidats' && (
               <button
                 onClick={() => setModalType('add_candidat')}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition shrink-0"
               >
-                <Plus className="w-4 h-4" />
-                <span>Nouveau Candidat</span>
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>Nouveau</span>
               </button>
             )}
           </div>
