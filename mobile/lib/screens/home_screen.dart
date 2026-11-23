@@ -232,6 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
         role: _role,
         selectedAnnexe: _selectedAnnexe,
         onAnnexeChanged: (a) => setState(() => _selectedAnnexe = a),
+        onNavigateToTab: (idx) => setState(() => _currentIndex = idx),
       ),
       CandidatsTab(
         role: _role,
