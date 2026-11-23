@@ -100,11 +100,30 @@ class CandidatDetails {
     return p.clamp(0.0, 1.0);
   }
 
+  String get typeFormationAffichee {
+    final t = typeFormation.trim().toUpperCase();
+    if (t == 'COMPLETE' || t == 'FORMATION COMPLETE' || t == 'FORMATION COMPLÈTE') {
+      return 'Formation Complète';
+    } else if (t == 'RECYCLAGE') {
+      return 'Recyclage';
+    } else if (t == 'PERFECTIONNEMENT') {
+      return 'Perfectionnement';
+    } else if (t == 'CODE_SEUL' || t == 'CODE SEUL') {
+      return 'Code Seul';
+    } else if (t == 'CONDUITE_SEULE' || t == 'CONDUITE SEULE') {
+      return 'Conduite Seule';
+    }
+    return typeFormation.isNotEmpty ? typeFormation : 'Formation Standard';
+  }
+
   factory CandidatDetails.fromJson(Map<String, dynamic> json) {
-    final prev = json['nb_conduites_prevues'] as int? ?? 20;
-    final eff = json['nb_conduites_effectuees'] as int? ?? 0;
-    final total = json['montant_total'] as int? ?? 0;
-    final paye = json['montant_paye'] as int? ?? 0;
+    final cat = (json['categorie_permis'] ?? json['categorie'] ?? 'B').toString();
+    final defaultPrev = cat.toUpperCase() == 'A' ? 14 : 12;
+    final prevRaw = (json['nb_conduites_prevues'] as num?)?.toInt();
+    final prev = (prevRaw != null && prevRaw > 0) ? prevRaw : defaultPrev;
+    final eff = (json['nb_conduites_effectuees'] as num?)?.toInt() ?? 0;
+    final total = (json['montant_total'] as num?)?.toInt() ?? 0;
+    final paye = (json['montant_paye'] as num?)?.toInt() ?? 0;
 
     return CandidatDetails(
       id: json['id'] ?? '',

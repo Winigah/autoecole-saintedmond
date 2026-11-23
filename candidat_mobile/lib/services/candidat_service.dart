@@ -115,7 +115,10 @@ class CandidatService {
           // 3. Mapper les colonnes Supabase vers l'objet CandidatDetails
           final int montantTotal = (candMap['montant_total'] as num?)?.toInt() ?? 0;
           final int montantPaye = (candMap['montant_paye'] as num?)?.toInt() ?? 0;
-          final int prevues = (candMap['nb_conduites_prevues'] as num?)?.toInt() ?? 12;
+          final cat = (candMap['categorie'] ?? 'B').toString();
+          final defaultPrev = cat.toUpperCase() == 'A' ? 14 : 12;
+          final int? rawPrev = (candMap['nb_conduites_prevues'] as num?)?.toInt();
+          final int prevues = (rawPrev != null && rawPrev > 0) ? rawPrev : defaultPrev;
           final int effectuees = (candMap['nb_conduites_effectuees'] as num?)?.toInt() ?? 0;
 
           final details = CandidatDetails(
