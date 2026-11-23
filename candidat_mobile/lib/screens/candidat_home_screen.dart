@@ -18,6 +18,42 @@ class CandidatHomeScreen extends StatefulWidget {
 
 class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
   int _currentIndex = 0;
+  late CandidatPortalData _portalData;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _portalData = widget.portalData;
+    _actualiser(silencieux: true);
+  }
+
+  Future<void> _actualiser({bool silencieux = false}) async {
+    final code = _portalData.candidat.codeAcces;
+    if (code.isEmpty) return;
+    if (!silencieux && mounted) {
+      setState(() => _isRefreshing = true);
+    }
+    try {
+      final fresh = await CandidatService.authentifierParCode(code);
+      if (fresh != null && mounted) {
+        setState(() {
+          _portalData = fresh;
+        });
+        if (!silencieux) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Données actualisées avec succès !'),
+              backgroundColor: Color(0xFF10B981),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (_) {} finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
 
   void _deconnexion() async {
     final conf = await showDialog<bool>(
@@ -54,18 +90,18 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final ecole = widget.portalData.entreprise;
-    final cand = widget.portalData.candidat;
+    final ecole = _portalData.entreprise;
+    final cand = _portalData.candidat;
 
     final List<Widget> tabs = [
       DashboardTab(
-        data: widget.portalData,
+        data: _portalData,
         onNavToPlanning: () => setState(() => _currentIndex = 1),
         onNavToFinances: () => setState(() => _currentIndex = 2),
         onNavToRevision: () => setState(() => _currentIndex = 3),
       ),
-      PlanningTab(data: widget.portalData),
-      FinancesTab(data: widget.portalData),
+      PlanningTab(data: _portalData),
+      FinancesTab(data: _portalData),
       const RevisionQuizTab(),
     ];
 
@@ -134,13 +170,29 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
           ],
         ),
         actions: [
+          _isRefreshing
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2563EB)),
+                    ),
+                  ),
+                )
+              : IconButton(
+                  onPressed: () => _actualiser(silencieux: false),
+                  icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2563EB), size: 22),
+                  tooltip: 'Actualiser',
+                ),
           IconButton(
             onPressed: () => CandidatService.contacterAutoEcoleWhatsApp(
               telephone: ecole.telephone,
               nomCandidat: cand.nomComplet,
               codeAcces: cand.codeAcces,
             ),
-            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF10B981)),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF10B981), size: 22),
             tooltip: 'WhatsApp Secrétariat',
           ),
           IconButton(
