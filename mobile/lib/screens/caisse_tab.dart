@@ -666,6 +666,90 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
     );
   }
 
+  Widget _buildSummaryCard({
+    required String title,
+    required int amount,
+    required int count,
+    required String countLabel,
+    required Color colorStart,
+    required Color colorEnd,
+    required IconData icon,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorStart, colorEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorStart.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '${currencyFormat.format(amount)} F',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$count $countLabel',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final recettes =
@@ -674,6 +758,8 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
       annexe: widget.selectedAnnexe,
       isSecretaire: widget.role == 'SECRETAIRE',
     );
+    final totalRecettes = recettes.fold<int>(0, (sum, r) => sum + r.montant);
+    final totalDepenses = depenses.fold<int>(0, (sum, d) => sum + d.montant);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -716,9 +802,19 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                     color: const Color(0xFF10B981),
                     child: recettes.isEmpty
                         ? ListView(
-                            children: const [
-                              SizedBox(height: 120),
-                              Center(
+                            padding: const EdgeInsets.all(16.0),
+                            children: [
+                              _buildSummaryCard(
+                                title: 'Total Encaissé',
+                                amount: 0,
+                                count: 0,
+                                countLabel: 'recettes',
+                                colorStart: const Color(0xFF059669),
+                                colorEnd: const Color(0xFF10B981),
+                                icon: Icons.account_balance_wallet_rounded,
+                              ),
+                              const SizedBox(height: 80),
+                              const Center(
                                 child: Text('Aucune recette enregistrée.',
                                     style: TextStyle(color: Color(0xFF94A3B8))),
                               ),
@@ -726,42 +822,108 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16.0),
-                            itemCount: recettes.length,
+                            itemCount: recettes.length + 1,
                             itemBuilder: (ctx, i) {
-                              final r = recettes[i];
+                              if (i == 0) {
+                                return _buildSummaryCard(
+                                  title: 'Total Encaissé',
+                                  amount: totalRecettes,
+                                  count: recettes.length,
+                                  countLabel: 'recettes',
+                                  colorStart: const Color(0xFF059669),
+                                  colorEnd: const Color(0xFF10B981),
+                                  icon: Icons.account_balance_wallet_rounded,
+                                );
+                              }
+                              final r = recettes[i - 1];
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
                                   border:
                                       Border.all(color: const Color(0xFFE2E8F0)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.02),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(r.intitule,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14)),
-                                        const SizedBox(height: 4),
-                                        Text('${r.date} • ${r.annexe}',
-                                            style: const TextStyle(
-                                                fontSize: 11,
-                                                color: Color(0xFF64748B))),
-                                      ],
+                                    Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFECFDF5),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.arrow_downward_rounded,
+                                        color: Color(0xFF10B981),
+                                        size: 20,
+                                      ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            r.intitule,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13.5,
+                                              color: Color(0xFF0F172A),
+                                              height: 1.25,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.calendar_today_outlined,
+                                                  size: 11, color: Color(0xFF94A3B8)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                r.date,
+                                                style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B)),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              const Text('•',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Color(0xFF94A3B8))),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  r.annexe,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Color(0xFF64748B),
+                                                      fontWeight: FontWeight.w500),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       '+${currencyFormat.format(r.montant)} F',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w800,
-                                          fontSize: 15,
+                                          fontSize: 14.5,
                                           color: Color(0xFF10B981)),
                                     ),
                                   ],
@@ -788,9 +950,19 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                     color: const Color(0xFFEF4444),
                     child: depenses.isEmpty
                         ? ListView(
-                            children: const [
-                              SizedBox(height: 120),
-                              Center(
+                            padding: const EdgeInsets.all(16.0),
+                            children: [
+                              _buildSummaryCard(
+                                title: 'Total Décaissé',
+                                amount: 0,
+                                count: 0,
+                                countLabel: 'sorties',
+                                colorStart: const Color(0xFFDC2626),
+                                colorEnd: const Color(0xFFEF4444),
+                                icon: Icons.trending_down_rounded,
+                              ),
+                              const SizedBox(height: 80),
+                              const Center(
                                 child: Text('Aucune dépense enregistrée.',
                                     style: TextStyle(color: Color(0xFF94A3B8))),
                               ),
@@ -798,64 +970,135 @@ class _CaisseTabState extends State<CaisseTab> with SingleTickerProviderStateMix
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16.0),
-                            itemCount: depenses.length,
+                            itemCount: depenses.length + 1,
                             itemBuilder: (ctx, i) {
-                              final d = depenses[i];
+                              if (i == 0) {
+                                return _buildSummaryCard(
+                                  title: 'Total Décaissé',
+                                  amount: totalDepenses,
+                                  count: depenses.length,
+                                  countLabel: 'sorties',
+                                  colorStart: const Color(0xFFDC2626),
+                                  colorEnd: const Color(0xFFEF4444),
+                                  icon: Icons.trending_down_rounded,
+                                );
+                              }
+                              final d = depenses[i - 1];
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
                                   border:
                                       Border.all(color: const Color(0xFFE2E8F0)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.02),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    const Color(0xFFF1F5F9),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: Text(d.type,
-                                                  style: const TextStyle(
-                                                      fontSize: 9,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(d.intitule,
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text('${d.date} • ${d.annexe}',
-                                            style: const TextStyle(
-                                                fontSize: 11,
-                                                color: Color(0xFF64748B))),
-                                      ],
+                                    Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFEF2F2),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.arrow_upward_rounded,
+                                        color: Color(0xFFEF4444),
+                                        size: 20,
+                                      ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 1.5),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      const Color(0xFFF1F5F9),
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                ),
+                                                child: Text(d.type,
+                                                    style: const TextStyle(
+                                                        fontSize: 9,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            Color(0xFF475569))),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: Text(
+                                                  d.intitule,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13.5,
+                                                    color: Color(0xFF0F172A),
+                                                    height: 1.25,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.calendar_today_outlined,
+                                                  size: 11, color: Color(0xFF94A3B8)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                d.date,
+                                                style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B)),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              const Text('•',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Color(0xFF94A3B8))),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  d.annexe,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Color(0xFF64748B),
+                                                      fontWeight: FontWeight.w500),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       '-${currencyFormat.format(d.montant)} F',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w800,
-                                          fontSize: 15,
+                                          fontSize: 14.5,
                                           color: Color(0xFFEF4444)),
                                     ),
                                   ],
