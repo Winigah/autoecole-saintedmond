@@ -57,3 +57,15 @@ export interface BilanMois {
   depenses: number;
   solde: number;
 }
+
+export interface Seance {
+  id: string;
+  candidat_id: string;
+  type_seance: 'CODE' | 'CONDUITE';
+  date_heure: string; // Ex: '2026-11-25T14:30:00'
+  duree_minutes: number;
+  moniteur_nom?: string;
+  statut: 'PLANIFIE' | 'EFFECTUE' | 'ANNULE' | 'ABSENT';
+  notes?: string;
+}
+

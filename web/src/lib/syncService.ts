@@ -1,5 +1,5 @@
 import { supabase, isConfigured } from './supabase';
-import type { Candidat, Depense, Recette } from '../types';
+import type { Candidat, Depense, Recette, Seance } from '../types';
 
 export type SyncStatus = 'offline' | 'online_synced' | 'syncing' | 'error';
 
@@ -192,6 +192,30 @@ class SyncService {
     }
   }
 
+  public async syncSeance(seance: Seance) {
+    if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.enqueue('seances', 'upsert', seance);
+      return;
+    }
+    try {
+      await supabase.from('seances').upsert(seance);
+    } catch (e) {
+      this.enqueue('seances', 'upsert', seance);
+    }
+  }
+
+  public async deleteSeance(id: string) {
+    if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.enqueue('seances', 'delete', { id });
+      return;
+    }
+    try {
+      await supabase.from('seances').delete().eq('id', id);
+    } catch (e) {
+      this.enqueue('seances', 'delete', { id });
+    }
+  }
+
   // --- CHARGEMENT INITIAL DEPUIS CLOUD ---
 
   public async fetchAllFromCloud(): Promise<{
@@ -199,17 +223,19 @@ class SyncService {
     depenses?: Depense[];
     recettes?: Recette[];
     annexes?: string[];
+    seances?: Seance[];
   } | null> {
     if (!isConfigured || (typeof navigator !== 'undefined' && !navigator.onLine)) return null;
 
     try {
       this.setStatus('syncing');
 
-      const [candRes, depRes, recRes, annRes] = await Promise.all([
+      const [candRes, depRes, recRes, annRes, seanceRes] = await Promise.all([
         supabase.from('candidats').select('*'),
         supabase.from('depenses').select('*'),
         supabase.from('recettes').select('*'),
         supabase.from('annexes').select('nom'),
+        supabase.from('seances').select('*').order('date_heure', { ascending: true }),
       ]);
 
       this.setStatus('online_synced');
@@ -219,6 +245,7 @@ class SyncService {
         depenses: depRes.data as Depense[] | undefined,
         recettes: recRes.data as Recette[] | undefined,
         annexes: annRes.data?.map(a => a.nom) as string[] | undefined,
+        seances: seanceRes.data as Seance[] | undefined,
       };
     } catch (err) {
       console.error('Erreur chargement Supabase:', err);
@@ -233,6 +260,7 @@ class SyncService {
     onCandidatChange?: (payload: any) => void;
     onDepenseChange?: (payload: any) => void;
     onRecetteChange?: (payload: any) => void;
+    onSeanceChange?: (payload: any) => void;
   }) {
     if (!isConfigured || this.realtimeChannel) return;
 
@@ -253,6 +281,11 @@ class SyncService {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'recettes' },
           payload => callbacks.onRecetteChange?.(payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'seances' },
+          payload => callbacks.onSeanceChange?.(payload)
         )
         .subscribe();
     } catch (err) {

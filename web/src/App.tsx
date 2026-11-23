@@ -9,7 +9,7 @@ import {
   UserPlus, ArrowDownLeft
 } from 'lucide-react';
 
-import type { Candidat, Depense, Recette, RoleUtilisateur, Sexe } from './types';
+import type { Candidat, Depense, Recette, RoleUtilisateur, Sexe, Seance } from './types';
 import { 
   generateCandidatsPDF, 
   generateBilanPDF, 
@@ -134,6 +134,12 @@ export default function App() {
   const [modalType, setModalType] = useState<string | null>(null);
   const [modalData, setModalData] = useState<any>(null);
   const [selectedCandidatForSupplement, setSelectedCandidatForSupplement] = useState<Candidat | null>(null);
+  const [selectedCandidatForPlanning, setSelectedCandidatForPlanning] = useState<Candidat | null>(null);
+  const [newSeanceType, setNewSeanceType] = useState<'CONDUITE' | 'CODE'>('CONDUITE');
+  const [newSeanceDate, setNewSeanceDate] = useState<string>('');
+  const [newSeanceDuree, setNewSeanceDuree] = useState<number>(60);
+  const [newSeanceMoniteur, setNewSeanceMoniteur] = useState<string>('Moniteur Saint Edmond');
+  const [newSeanceNotes, setNewSeanceNotes] = useState<string>('');
   const [editingCandidat, setEditingCandidat] = useState<Candidat | null>(null);
   const [editingDepense, setEditingDepense] = useState<Depense | null>(null);
   const [editingRecette, setEditingRecette] = useState<Recette | null>(null);
@@ -215,6 +221,15 @@ export default function App() {
     }
   });
 
+  const [seances, setSeances] = useState<Seance[]>(() => {
+    try {
+      const saved = localStorage.getItem('autoecole_seances_saintedmond');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Sauvegarde automatique des données réelles
   useEffect(() => {
     try {
@@ -239,6 +254,14 @@ export default function App() {
       console.error(e);
     }
   }, [recettes]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('autoecole_seances_saintedmond', JSON.stringify(seances));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [seances]);
 
   // État et abonnement au service de synchronisation Cloud / Offline-first
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => syncService.getStatus());
@@ -285,6 +308,17 @@ export default function App() {
       if (cloudData.annexes && cloudData.annexes.length > 0) {
         setAnnexesList((prev) => Array.from(new Set([...prev, ...cloudData.annexes!])));
       }
+      if (cloudData.seances && cloudData.seances.length > 0) {
+        setSeances((prev) => {
+          const merged = [...prev];
+          cloudData.seances!.forEach((cs) => {
+            const idx = merged.findIndex((s) => s.id === cs.id);
+            if (idx === -1) merged.push(cs);
+            else merged[idx] = cs;
+          });
+          return merged;
+        });
+      }
     });
 
     // Écoute en temps réel (Realtime) pour les mises à jour distantes (ex: depuis le mobile)
@@ -314,6 +348,15 @@ export default function App() {
           setRecettes((prev) => prev.map((r) => (r.id === payload.new.id ? (payload.new as Recette) : r)));
         } else if (payload.eventType === 'DELETE') {
           setRecettes((prev) => prev.filter((r) => r.id !== payload.old.id));
+        }
+      },
+      onSeanceChange: (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setSeances((prev) => [payload.new as Seance, ...prev.filter((s) => s.id !== payload.new.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          setSeances((prev) => prev.map((s) => (s.id === payload.new.id ? (payload.new as Seance) : s)));
+        } else if (payload.eventType === 'DELETE') {
+          setSeances((prev) => prev.filter((s) => s.id !== payload.old.id));
         }
       },
     });
@@ -664,6 +707,59 @@ export default function App() {
     setModalType(null);
     setEditingCandidat(null);
     showToast(`Candidat ${nomPrenom} supprimé.`);
+  };
+
+  const handleAddSeance = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCandidatForPlanning) return;
+    if (!newSeanceDate) {
+      alert('Veuillez sélectionner la date et l\'heure de la séance.');
+      return;
+    }
+
+    const nouvelleSeance: Seance = {
+      id: `seance_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      candidat_id: selectedCandidatForPlanning.id,
+      type_seance: newSeanceType,
+      date_heure: newSeanceDate,
+      duree_minutes: newSeanceDuree,
+      moniteur_nom: newSeanceMoniteur.trim() || 'Moniteur Saint Edmond',
+      statut: 'PLANIFIE',
+      notes: newSeanceNotes.trim() || undefined,
+    };
+
+    setSeances((prev) => [nouvelleSeance, ...prev]);
+    syncService.syncSeance(nouvelleSeance);
+    setNewSeanceDate('');
+    setNewSeanceNotes('');
+    showToast(`Séance de ${newSeanceType === 'CONDUITE' ? 'conduite' : 'code'} programmée avec succès !`);
+  };
+
+  const handleToggleSeanceStatut = (seance: Seance) => {
+    const nouveauStatut = seance.statut === 'EFFECTUE' ? 'PLANIFIE' : 'EFFECTUE';
+    const updated: Seance = { ...seance, statut: nouveauStatut };
+    setSeances((prev) => prev.map((s) => (s.id === seance.id ? updated : s)));
+    syncService.syncSeance(updated);
+
+    // Si conduite : ajuster nb_conduites_effectuees du candidat
+    if (seance.type_seance === 'CONDUITE' && selectedCandidatForPlanning) {
+      const diff = nouveauStatut === 'EFFECTUE' ? 1 : -1;
+      const currentEff = selectedCandidatForPlanning.nb_conduites_effectuees || 0;
+      const newEff = Math.max(0, currentEff + diff);
+      const updatedCand = { ...selectedCandidatForPlanning, nb_conduites_effectuees: newEff };
+      setSelectedCandidatForPlanning(updatedCand);
+      setCandidats((prev) => prev.map((c) => (c.id === updatedCand.id ? updatedCand : c)));
+      syncService.syncCandidat(updatedCand);
+    }
+
+    showToast(`Séance marquée ${nouveauStatut === 'EFFECTUE' ? 'effectuée ✓' : 'planifiée'}`);
+  };
+
+  const handleDeleteSeance = (seanceId: string) => {
+    if (!window.confirm('Supprimer cette séance du planning ?')) return;
+    setSeances((prev) => prev.filter((s) => s.id !== seanceId));
+    syncService.deleteSeance(seanceId);
+    showToast('Séance supprimée.');
   };
 
   const handleAddSupplementConduite = (e: React.FormEvent<HTMLFormElement>) => {
@@ -1500,8 +1596,20 @@ export default function App() {
                           </span>
                         </div>
 
-                        {/* Bouton VOIR (comme sur la capture écran) */}
+                        {/* Boutons Actions Carte Candidat */}
                         <div className="mt-2.5 w-full pt-2 border-t border-slate-100 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCandidatForPlanning(c);
+                              setModalType('planning_candidat');
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] rounded-lg border border-indigo-200 transition flex items-center justify-center gap-1 cursor-pointer"
+                            title="Planifier et suivre les séances (conduite & code)"
+                          >
+                            <Calendar className="w-3 h-3 text-indigo-600" />
+                            <span>Planning</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
@@ -1510,7 +1618,7 @@ export default function App() {
                               setEditCandSexe(c.sexe);
                               setModalType('edit_candidat');
                             }}
-                            className="flex-1 py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-2xs transition flex items-center justify-center gap-1 cursor-pointer"
+                            className="py-1.5 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-2xs transition flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <span>VOIR</span>
                           </button>
@@ -1659,6 +1767,17 @@ export default function App() {
                             {/* Actions */}
                             <td className="px-4 py-3.5 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    setSelectedCandidatForPlanning(c);
+                                    setModalType('planning_candidat');
+                                  }}
+                                  className="inline-flex items-center gap-1 text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
+                                  title="Planifier et consulter les séances de cet élève"
+                                >
+                                  <Calendar className="w-3 h-3 text-indigo-600" />
+                                  <span>Planning</span>
+                                </button>
                                 <button
                                   onClick={() => {
                                     setSelectedCandidatForSupplement(c);
@@ -3354,6 +3473,267 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Modal Planning & Séances Personnalisées du Candidat */}
+      {modalType === 'planning_candidat' && selectedCandidatForPlanning && (() => {
+        const seancesCand = seances
+          .filter((s) => s.candidat_id === selectedCandidatForPlanning.id)
+          .sort((a, b) => a.date_heure.localeCompare(b.date_heure));
+        const nbConduitesTotal = seancesCand.filter((s) => s.type_seance === 'CONDUITE').length;
+        const nbConduitesFaites = seancesCand.filter((s) => s.type_seance === 'CONDUITE' && s.statut === 'EFFECTUE').length;
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100 flex flex-col">
+              {/* En-tête */}
+              <div className="sticky top-0 bg-white/95 backdrop-blur-xs z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-slate-900 leading-tight">
+                      Planning de {selectedCandidatForPlanning.nom} {selectedCandidatForPlanning.prenom}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Code App : <span className="font-mono font-bold text-indigo-600">{selectedCandidatForPlanning.code_acces || '—'}</span> • Permis {selectedCandidatForPlanning.categorie} • {selectedCandidatForPlanning.nb_conduites_effectuees || 0}/{selectedCandidatForPlanning.nb_conduites_prevues || 12} conduites
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setModalType(null); setSelectedCandidatForPlanning(null); }}
+                  className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Formulaire : Programmer une séance */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-indigo-600" />
+                    <span>Programmer une Nouvelle Séance</span>
+                  </h4>
+                  <form onSubmit={handleAddSeance} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {/* Type de séance */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Type de séance *</label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setNewSeanceType('CONDUITE')}
+                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1 cursor-pointer ${
+                              newSeanceType === 'CONDUITE'
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <Car className="w-3 h-3" />
+                            <span>Conduite</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewSeanceType('CODE')}
+                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1 cursor-pointer ${
+                              newSeanceType === 'CODE'
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <BookOpen className="w-3 h-3" />
+                            <span>Code</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Date & Heure */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Date & Heure *</label>
+                        <input
+                          required
+                          type="datetime-local"
+                          value={newSeanceDate}
+                          onChange={(e) => setNewSeanceDate(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      {/* Durée */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Durée</label>
+                        <select
+                          value={newSeanceDuree}
+                          onChange={(e) => setNewSeanceDuree(Number(e.target.value))}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value={60}>1 heure (60 min)</option>
+                          <option value={90}>1 heure 30 (90 min)</option>
+                          <option value={120}>2 heures (120 min)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      {/* Moniteur */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Moniteur / Formateur</label>
+                        <input
+                          type="text"
+                          value={newSeanceMoniteur}
+                          onChange={(e) => setNewSeanceMoniteur(e.target.value)}
+                          placeholder="Ex: Moniteur Koffi"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      {/* Notes / Objectif */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Lieu / Objectif pédagogique</label>
+                        <input
+                          type="text"
+                          value={newSeanceNotes}
+                          onChange={(e) => setNewSeanceNotes(e.target.value)}
+                          placeholder="Ex: Circuit Tokoin Ramco - Créneaux"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Enregistrer le créneau</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Liste des séances programmées pour cet élève */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-slate-500" />
+                      <span>Séances enregistrées ({seancesCand.length})</span>
+                    </h4>
+                    <span className="text-[11px] font-medium text-slate-500">
+                      Conduites programmées : {nbConduitesFaites}/{nbConduitesTotal} faites
+                    </span>
+                  </div>
+
+                  {seancesCand.length === 0 ? (
+                    <div className="text-center py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                      <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-xs font-medium text-slate-500">Aucune séance personnalisée enregistrée pour cet élève.</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Programmez-en une ci-dessus pour qu'elle s'affiche sur son mobile.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {seancesCand.map((s) => {
+                        const isConduite = s.type_seance === 'CONDUITE';
+                        const isDone = s.statut === 'EFFECTUE';
+                        const dateFormatted = new Date(s.date_heure).toLocaleString('fr-FR', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+
+                        return (
+                          <div
+                            key={s.id}
+                            className={`p-3.5 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                              isDone ? 'bg-emerald-50/40 border-emerald-200' : 'bg-white border-slate-200 hover:border-indigo-300'
+                            }`}
+                          >
+                            <div className="flex items-start sm:items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                  isConduite
+                                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                                    : 'bg-purple-50 text-purple-600 border border-purple-200'
+                                }`}
+                              >
+                                {isConduite ? <Car className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-xs text-slate-900">
+                                    {isConduite ? 'Séance Conduite' : 'Cours de Code'} ({s.duree_minutes} min)
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                      isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                    }`}
+                                  >
+                                    {isDone ? 'Effectué ✓' : 'À venir'}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] font-semibold text-indigo-700 mt-0.5 capitalize">
+                                  📅 {dateFormatted}
+                                </p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">
+                                  Moniteur : {s.moniteur_nom || 'Saint Edmond'}
+                                  {s.notes && ` • ${s.notes}`}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 self-end sm:self-center">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSeanceStatut(s)}
+                                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                                  isDone
+                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-2xs'
+                                }`}
+                                title={isDone ? 'Remettre en planifié' : 'Valider comme effectuée'}
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>{isDone ? 'Annuler validation' : 'Valider effectuée'}</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSeance(s.id)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-xl transition cursor-pointer"
+                                title="Supprimer cette séance"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pied de page modal */}
+              <div className="sticky bottom-0 bg-white/95 backdrop-blur-xs px-6 py-3.5 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] text-slate-500">
+                  Les séances planifiées sont synchronisées instantanément avec l'application élève.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { setModalType(null); setSelectedCandidatForPlanning(null); }}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal Achat Séances de Conduite Supplémentaires - Design Moderne */}
       {modalType === 'add_supplement_conduite' && selectedCandidatForSupplement && (

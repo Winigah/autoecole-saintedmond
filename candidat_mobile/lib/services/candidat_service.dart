@@ -112,6 +112,27 @@ class CandidatService {
             }
           }
 
+          // 2.b Récupérer les séances personnalisées réelles du candidat depuis la table seances
+          List<SeanceCandidat> seancesReelles = [];
+          if (candidatId.isNotEmpty && RegExp(r'^[a-zA-Z0-9_\-]+$').hasMatch(candidatId)) {
+            try {
+              final safeId = Uri.encodeComponent(candidatId);
+              final seanceUrl = Uri.parse(
+                '$_supabaseUrl/rest/v1/seances?candidat_id=eq.$safeId&select=*&order=date_heure.asc',
+              );
+              final seanceResponse = await http
+                  .get(seanceUrl, headers: _supabaseHeaders)
+                  .timeout(const Duration(seconds: 5));
+
+              if (seanceResponse.statusCode == 200) {
+                final List<dynamic> seanceList = jsonDecode(seanceResponse.body);
+                seancesReelles = seanceList.map((s) => SeanceCandidat.fromJson(s as Map<String, dynamic>)).toList();
+              }
+            } catch (e) {
+              debugPrint('Erreur chargement séances personnalisées: $e');
+            }
+          }
+
           // 3. Mapper les colonnes Supabase vers l'objet CandidatDetails
           final int montantTotal = (candMap['montant_total'] as num?)?.toInt() ?? 0;
           final int montantPaye = (candMap['montant_paye'] as num?)?.toInt() ?? 0;
@@ -149,27 +170,7 @@ class CandidatService {
           final portalData = CandidatPortalData(
             entreprise: saintEdmondInfo,
             candidat: details,
-            seances: [
-              SeanceCandidat(
-                id: 'sc_code',
-                typeSeance: 'CODE',
-                dateHeure: DateTime.now(),
-                dureeMinutes: 120,
-                moniteurNom: 'Auto-École Saint Edmond',
-                statut: 'EFFECTUE',
-                notes: 'Salle de cours : Siège Tokoin Ramco (Face Ambassade de Belgique)',
-              ),
-              if (effectuees > 0)
-                SeanceCandidat(
-                  id: 'sc_cond',
-                  typeSeance: 'CONDUITE',
-                  dateHeure: DateTime.now().subtract(const Duration(days: 2)),
-                  dureeMinutes: 60,
-                  moniteurNom: 'Moniteur Saint Edmond',
-                  statut: 'EFFECTUE',
-                  notes: 'Séances pratiques validées : $effectuees / $prevues',
-                ),
-            ],
+            seances: seancesReelles,
             paiements: paiementsReels,
           );
 
