@@ -45,34 +45,22 @@ class DashboardTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF59E0B), // Jaune Saint Edmond
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Siège : ${selectedAnnexe == "Toutes" ? "Toutes les agences" : selectedAnnexe}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                ],
+              const Text(
+                'Vue d\'ensemble',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.3,
+                ),
               ),
               // Compact Pill Selector
               Container(
-                height: 36,
+                height: 34,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: const Color(0xFFCBD5E1)),
                   boxShadow: [
                     BoxShadow(
@@ -99,7 +87,7 @@ class DashboardTab extends StatelessWidget {
                         items: ['Toutes', ...db.annexes].map((a) {
                           return DropdownMenuItem(
                             value: a,
-                            child: Text(a),
+                            child: Text(a == 'Toutes' ? 'Toutes agences' : a),
                           );
                         }).toList(),
                         onChanged: (val) {
