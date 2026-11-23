@@ -33,25 +33,25 @@ class DashboardTab extends StatelessWidget {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 1. Carte Profil Candidat & Jauge Haute Définition (Bleu & Or Saint Edmond) ──
+          // ── 1. Carte Profil Candidat & Jauge (Bleu & Or Saint Edmond) ──
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF2563EB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.35),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
+                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.28),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -207,21 +207,21 @@ class DashboardTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
 
           // ── 2. Prochaine Leçon Planifiée (si disponible) ──
           if (prochaineSeance != null) ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -234,15 +234,15 @@ class DashboardTab extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(9),
                             ),
                             child: Icon(
                               prochaineSeance.estConduite ? Icons.directions_car_rounded : Icons.menu_book_rounded,
                               color: const Color(0xFF2563EB),
-                              size: 20,
+                              size: 18,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -250,12 +250,12 @@ class DashboardTab extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Prochaine leçon : ${prochaineSeance.typeSeance}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                                'Prochaine : ${prochaineSeance.typeSeance}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)),
                               ),
                               Text(
-                                DateFormat('EEEE d MMMM à HH:mm', 'fr_FR').format(prochaineSeance.dateHeure),
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
+                                DateFormat('EEE d MMM à HH:mm', 'fr_FR').format(prochaineSeance.dateHeure),
+                                style: const TextStyle(fontSize: 11.5, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -263,29 +263,29 @@ class DashboardTab extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: onNavToPlanning,
-                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                        child: const Text('Voir tout', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                        child: const Text('Voir tout', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                   if (prochaineSeance.notes != null && prochaineSeance.notes!.isNotEmpty) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        "Objectif : ${prochaineSeance.notes!}",
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF475569), fontStyle: FontStyle.italic),
+                        prochaineSeance.notes!,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
                       ),
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
           ],
 
           // ── 3. Duo de Cartes Métriques : Conduite & Scolarité ──
@@ -295,17 +295,17 @@ class DashboardTab extends StatelessWidget {
               Expanded(
                 child: InkWell(
                   onTap: onNavToPlanning,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 6,
+                          blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -318,59 +318,59 @@ class DashboardTab extends StatelessWidget {
                           children: [
                             const Text(
                               'Conduite',
-                              style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+                              style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w700),
                             ),
                             Container(
-                              padding: const EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(4),
                               decoration: const BoxDecoration(
                                 color: Color(0xFFEFF6FF),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.directions_car_rounded, size: 14, color: Color(0xFF2563EB)),
+                              child: const Icon(Icons.directions_car_rounded, size: 13, color: Color(0xFF2563EB)),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           '${cand.nbConduitesEffectuees} / ${cand.nbConduitesPrevues}',
-                          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(3),
                           child: LinearProgressIndicator(
                             value: ratioConduite,
-                            minHeight: 5,
+                            minHeight: 4,
                             backgroundColor: const Color(0xFFF1F5F9),
                             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           '${cand.nbConduitesRestantes} restantes',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               // Carte Scolarité
               Expanded(
                 child: InkWell(
                   onTap: onNavToFinances,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 6,
+                          blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -383,48 +383,48 @@ class DashboardTab extends StatelessWidget {
                           children: [
                             const Text(
                               'Scolarité',
-                              style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w700),
+                              style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w700),
                             ),
                             Container(
-                              padding: const EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: cand.estSolde ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.account_balance_wallet_rounded,
-                                size: 14,
+                                size: 13,
                                 color: cand.estSolde ? const Color(0xFF10B981) : const Color(0xFFD97706),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           cand.estSolde ? 'Soldé ✓' : '${currencyFormat.format(cand.montantRestant)} F',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: FontWeight.w900,
                             color: cand.estSolde ? const Color(0xFF10B981) : const Color(0xFFD97706),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(
                             color: cand.estSolde ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             cand.estSolde ? 'Tout est réglé' : 'Reste à payer',
                             style: TextStyle(
-                              fontSize: 10.5,
+                              fontSize: 10,
                               color: cand.estSolde ? const Color(0xFF10B981) : const Color(0xFFD97706),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           'Sur ${currencyFormat.format(cand.montantTotal)} F',
                           style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
@@ -437,148 +437,14 @@ class DashboardTab extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
 
-          // ── 4. Parcours des Examens Officiels ──
+          // ── 4. Examens Officiels ──
           Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.military_tech_rounded, size: 20, color: Color(0xFF2563EB)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Examens Officiels',
-                          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        '2 Épreuves',
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildExamenCard(
-                  stepNum: '1',
-                  titre: 'Examen de Code (Théorique)',
-                  statut: cand.statutExamenCode,
-                  dateStr: cand.dateExamenCode,
-                  icon: Icons.menu_book_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildExamenCard(
-                  stepNum: '2',
-                  titre: 'Examen de Conduite (Pratique)',
-                  statut: cand.statutExamenConduite,
-                  dateStr: cand.dateExamenConduite,
-                  icon: Icons.directions_car_rounded,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ── 5. Bannière Cours & Supports de Révision (Bleu & Or Saint Edmond) ──
-          InkWell(
-            onTap: onNavToRevision,
-            borderRadius: BorderRadius.circular(22),
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF2563EB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFFFBBF24).withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      color: Color(0xFFFBBF24), // Jaune Saint Edmond
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Supports de Révision & Quiz',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14.5,
-                          ),
-                        ),
-                        SizedBox(height: 3),
-                        Text(
-                          'Consultez les cours officiels et testez-vous avec nos quiz de code.',
-                          style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 11.5, height: 1.25),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 15),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ── 6. Carte Secrétariat & Contact Auto-École ──
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: [
                 BoxShadow(
@@ -594,27 +460,161 @@ class DashboardTab extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.military_tech_rounded, size: 18, color: Color(0xFF2563EB)),
+                        SizedBox(width: 7),
+                        Text(
+                          'Examens Officiels',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: const Text(
+                        '2 Épreuves',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildExamenCard(
+                  stepNum: '1',
+                  titre: 'Examen de Code (Théorique)',
+                  statut: cand.statutExamenCode,
+                  dateStr: cand.dateExamenCode,
+                  icon: Icons.menu_book_rounded,
+                ),
+                const SizedBox(height: 8),
+                _buildExamenCard(
+                  stepNum: '2',
+                  titre: 'Examen de Conduite (Pratique)',
+                  statut: cand.statutExamenConduite,
+                  dateStr: cand.dateExamenConduite,
+                  icon: Icons.directions_car_rounded,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── 5. Bannière Révision (Bleu & Or Saint Edmond) ──
+          InkWell(
+            onTap: onNavToRevision,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF2563EB)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.22),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFFBBF24).withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.school_rounded,
+                      color: Color(0xFFFBBF24),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Supports de Révision & Fiches PDF',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Consultez les cours officiels de Saint Edmond.',
+                          style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 11, height: 1.2),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white60, size: 14),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── 6. Carte Secrétariat & Contact ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           ecole.nom,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: Color(0xFF0F172A)),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A)),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         const Text(
                           'Secrétariat & Assistance Élève',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
                         ),
                       ],
                     ),
                     Text(
                       ecole.telephone,
-                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
@@ -624,28 +624,28 @@ class DashboardTab extends StatelessWidget {
                           nomCandidat: cand.nomComplet,
                           codeAcces: cand.codeAcces,
                         ),
-                        icon: const Icon(Icons.chat_bubble_rounded, size: 16),
-                        label: const Text('WhatsApp', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.chat_bubble_rounded, size: 15),
+                        label: const Text('WhatsApp', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981),
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => CandidatService.appelerAutoEcole(ecole.telephone),
-                        icon: const Icon(Icons.phone_rounded, size: 16),
-                        label: const Text('Appeler', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.phone_rounded, size: 15),
+                        label: const Text('Appeler', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF2563EB),
-                          side: const BorderSide(color: Color(0xFF2563EB)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
                     ),
@@ -654,7 +654,7 @@ class DashboardTab extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
         ],
       ),
     );

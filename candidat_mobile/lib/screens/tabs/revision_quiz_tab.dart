@@ -66,9 +66,9 @@ class _RevisionQuizTabState extends State<RevisionQuizTab> {
       case 'CONDUITE':
         return const Color(0xFF10B981);
       case 'PANNEAUX':
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFD97706);
       default:
-        return const Color(0xFF8B5CF6);
+        return const Color(0xFF7C3AED);
     }
   }
 
@@ -85,88 +85,100 @@ class _RevisionQuizTabState extends State<RevisionQuizTab> {
         color: const Color(0xFF2563EB),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Bannière En-tête
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              // ── EN-TÊTE ÉPURÉ & AÉRÉ (PLUS DE GROS PAVÉ SOMBRE) ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Supports & Fiches PDF',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Révisez vos cours officiels à votre rythme',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
                     ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDC2626).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.4)),
-                      ),
-                      child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFF87171), size: 32),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Supports & Cours de Révision',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_documents.length} cours',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E40AF),
                           ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Documents officiels au format PDF partagés par la Direction de l\'Auto-École Saint Edmond.',
-                            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.3),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
-              // Sélecteur de Catégories
+              // ── SÉLECTEUR DE CATÉGORIES EN PILULES FINES ──
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: ['TOUS', 'CODE', 'CONDUITE', 'PANNEAUX'].map((cat) {
                     final isSel = _selectedCategory == cat;
+                    final label = cat == 'TOUS' ? 'Tous les cours' : cat;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: ChoiceChip(
-                        label: Text(
-                          cat == 'TOUS' ? 'Tous les cours' : cat,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isSel ? Colors.white : const Color(0xFF475569),
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedCategory = cat),
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSel ? const Color(0xFF2563EB) : Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSel ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                            ),
+                            boxShadow: isSel
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
-                        ),
-                        selected: isSel,
-                        onSelected: (_) => setState(() => _selectedCategory = cat),
-                        selectedColor: const Color(0xFF2563EB),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: isSel ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                              color: isSel ? Colors.white : const Color(0xFF475569),
+                            ),
                           ),
                         ),
                       ),
@@ -175,140 +187,183 @@ class _RevisionQuizTabState extends State<RevisionQuizTab> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // Liste des documents
+              // ── LISTE DE DOCUMENTS MODERNE & AÉRÉE ──
               if (_isLoading)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 40.0),
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2563EB)),
                   ),
                 )
               else if (filteredDocs.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Column(
-                      children: [
-                        Icon(Icons.folder_open_rounded, size: 48, color: Colors.grey.shade400),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Aucun document disponible dans cette catégorie.',
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                        ),
-                      ],
-                    ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(Icons.folder_open_rounded, size: 40, color: Color(0xFFCBD5E1)),
+                      SizedBox(height: 8),
+                      Text(
+                        'Aucun support dans cette catégorie pour l\'instant.',
+                        style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                      ),
+                    ],
                   ),
                 )
               else
-                ListView.builder(
+                ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: filteredDocs.length,
+                  separatorBuilder: (ctx, i) => const SizedBox(height: 9),
                   itemBuilder: (ctx, i) {
                     final doc = filteredDocs[i];
                     final catColor = _getCategoryColor(doc.categorie);
 
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      elevation: 0,
+                    return Material(
                       color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF2F2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(Icons.picture_as_pdf, color: Color(0xFFDC2626), size: 28),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: catColor.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          doc.categorie,
-                                          style: TextStyle(
-                                            color: catColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        doc.titre,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: Color(0xFF0F172A),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (doc.description.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                doc.description,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.3),
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        onTap: () => _ouvrirDocument(doc),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.015),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
                               ),
                             ],
-                            const SizedBox(height: 12),
-                            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Ajouté le ${doc.dateAjout} • ${doc.taille ?? 'PDF'}',
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                          ),
+                          child: Row(
+                            children: [
+                              // Vignette PDF stylisée
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF2F2),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFFECACA)),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: () => _ouvrirDocument(doc),
-                                  icon: const Icon(Icons.open_in_new, size: 14, color: Colors.white),
-                                  label: const Text(
-                                    'Ouvrir le cours',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.picture_as_pdf_rounded,
+                                    color: Color(0xFFDC2626),
+                                    size: 22,
                                   ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF2563EB),
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Détails du document
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: catColor.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                          child: Text(
+                                            doc.categorie.toUpperCase(),
+                                            style: TextStyle(
+                                              color: catColor,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 9.5,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          doc.taille ?? 'PDF',
+                                          style: const TextStyle(
+                                            fontSize: 10.5,
+                                            color: Color(0xFF94A3B8),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      doc.titre,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Color(0xFF0F172A),
+                                        height: 1.25,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(width: 10),
+
+                              // Bouton d'ouverture discret
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
+
+              const SizedBox(height: 20),
+
+              // ── NOTE BAS DE PAGE ──
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF64748B), size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Les fiches PDF sont consultables hors-connexion après premier téléchargement.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

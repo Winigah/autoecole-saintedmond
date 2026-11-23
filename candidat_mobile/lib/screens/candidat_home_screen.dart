@@ -110,11 +110,12 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
+        titleSpacing: 14,
         title: Row(
           children: [
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -123,46 +124,61 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(9),
                 child: Image.asset(
                   'assets/icon/app_icon.png',
-                  width: 34,
-                  height: 34,
+                  width: 32,
+                  height: 32,
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 9),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    ecole.nom,
-                    style: const TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                   Row(
                     children: [
                       const Text(
-                        'Code : ',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        'Saint Edmond',
+                        style: TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                      Text(
-                        cand.codeAcces,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2563EB),
-                          fontFamily: 'monospace',
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: const Text(
+                          'Élève',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2563EB),
+                          ),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    'Code : ${cand.codeAcces}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -172,34 +188,43 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
         actions: [
           _isRefreshing
               ? const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 8),
                   child: Center(
                     child: SizedBox(
-                      width: 18,
-                      height: 18,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2563EB)),
                     ),
                   ),
                 )
               : IconButton(
+                  padding: const EdgeInsets.all(6),
+                  constraints: const BoxConstraints(),
                   onPressed: () => _actualiser(silencieux: false),
-                  icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2563EB), size: 22),
+                  icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2563EB), size: 21),
                   tooltip: 'Actualiser',
                 ),
+          const SizedBox(width: 4),
           IconButton(
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(),
             onPressed: () => CandidatService.contacterAutoEcoleWhatsApp(
               telephone: ecole.telephone,
               nomCandidat: cand.nomComplet,
               codeAcces: cand.codeAcces,
             ),
-            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF10B981), size: 22),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF10B981), size: 21),
             tooltip: 'WhatsApp Secrétariat',
           ),
+          const SizedBox(width: 4),
           IconButton(
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(),
             onPressed: _deconnexion,
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFF64748B), size: 20),
+            icon: const Icon(Icons.logout_rounded, color: Color(0xFF94A3B8), size: 19),
             tooltip: 'Quitter',
           ),
+          const SizedBox(width: 10),
         ],
       ),
       body: IndexedStack(
