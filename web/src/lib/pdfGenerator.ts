@@ -814,3 +814,193 @@ export const generateRecuSupplementConduitePDF = (
   doc.save(`recu_supplement_conduite_${candidat.nom}_${candidat.prenom}_${Date.now()}.pdf`);
 };
 
+/**
+ * Génération du rapport officiel PDF : État des Créances & Reste à Payer (Recouvrement)
+ */
+export const generateImpayesPDF = (
+  candidats: Candidat[],
+  annexe: string = 'Toutes',
+  autoEcole: string = 'Auto-École Saint Edmond',
+  directeur: string = 'M. KALIBOU Edmond B.'
+) => {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth(); // 297mm
+  const pageH = doc.internal.pageSize.getHeight(); // 210mm
+
+  // 1. Logo officiel
+  try {
+    doc.addImage(SAINT_EDMOND_LOGO_BASE64, 'PNG', 14, 10, 18, 18);
+  } catch (e) {
+    console.warn('Logo introuvable pour le PDF:', e);
+  }
+
+  // 2. Entête officiel
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(29, 78, 216); // Bleu Saint Edmond
+  doc.text(autoEcole.toUpperCase(), 36, 17);
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(185, 28, 28); // Rouge recouvrement
+  doc.text('ÉTAT DES CRÉANCES & CANDIDATS NON SOLDÉS (RESTE À PAYER)', 36, 23);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    `Annexe : ${annexe}  |  Document confidentiel de recouvrement généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`,
+    36,
+    28
+  );
+
+  // 3. Calculs des KPI
+  const nonSoldes = candidats.filter(c => (c.montant_total || 0) > (c.montant_paye || 0));
+  const totalForfaits = nonSoldes.reduce((acc, c) => acc + (c.montant_total || 0), 0);
+  const totalEncaisse = nonSoldes.reduce((acc, c) => acc + (c.montant_paye || 0), 0);
+  const totalReste = totalForfaits - totalEncaisse;
+  const examensBloques = nonSoldes.filter(
+    c => c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME'
+  ).length;
+
+  // 4. Bannière Synthèse KPI (4 boîtes)
+  const boxY = 32;
+  const boxH = 16;
+  const boxW = (pageW - 28 - 9) / 4; // 4 boîtes réparties
+
+  // Boîte 1: Nombre de candidats
+  doc.setFillColor(241, 245, 249);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(14, boxY, boxW, boxH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(100, 116, 139);
+  doc.text('CANDIDATS EN DETTE', 14 + boxW / 2, boxY + 5.5, { align: 'center' });
+  doc.setFontSize(examensBloques > 0 ? 9.5 : 11);
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    examensBloques > 0
+      ? `${nonSoldes.length} élève${nonSoldes.length > 1 ? 's' : ''} (${examensBloques} bloqué${examensBloques > 1 ? 's' : ''})`
+      : `${nonSoldes.length} élève${nonSoldes.length > 1 ? 's' : ''}`,
+    14 + boxW / 2,
+    boxY + 12,
+    { align: 'center' }
+  );
+
+  // Boîte 2: Total forfaits
+  const b2X = 14 + boxW + 3;
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(b2X, boxY, boxW, boxH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('VOLUME GLOBAL FORFAITS', b2X + boxW / 2, boxY + 5.5, { align: 'center' });
+  doc.setFontSize(10.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${formatMontant(totalForfaits)} F`, b2X + boxW / 2, boxY + 12, { align: 'center' });
+
+  // Boîte 3: Déjà encaissé
+  const b3X = b2X + boxW + 3;
+  doc.setFillColor(236, 253, 245);
+  doc.setDrawColor(167, 243, 208);
+  doc.roundedRect(b3X, boxY, boxW, boxH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setTextColor(4, 120, 87);
+  doc.text('DÉJÀ ENCAISSÉ', b3X + boxW / 2, boxY + 5.5, { align: 'center' });
+  doc.setFontSize(10.5);
+  doc.setTextColor(4, 120, 87);
+  doc.text(`${formatMontant(totalEncaisse)} F`, b3X + boxW / 2, boxY + 12, { align: 'center' });
+
+  // Boîte 4: Reste à recouvrer (Mise en valeur rouge vif)
+  const b4X = b3X + boxW + 3;
+  doc.setFillColor(254, 242, 242);
+  doc.setDrawColor(254, 202, 202);
+  doc.roundedRect(b4X, boxY, boxW, boxH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setTextColor(185, 28, 28);
+  doc.text('TOTAL RESTE À RECOUVRER', b4X + boxW / 2, boxY + 5.5, { align: 'center' });
+  doc.setFontSize(11);
+  doc.setTextColor(185, 28, 28);
+  doc.text(`${formatMontant(totalReste)} FCFA`, b4X + boxW / 2, boxY + 12, { align: 'center' });
+
+  // 5. Tableau détaillé des créances
+  const tableData = nonSoldes.map((c, i) => {
+    const reste = (c.montant_total || 0) - (c.montant_paye || 0);
+    const hasExamCode = c.statut_examen_code === 'PROGRAMME';
+    const hasExamCond = c.statut_examen_conduite === 'PROGRAMME';
+    let alerteExamen = '—';
+    if (hasExamCode && hasExamCond) alerteExamen = '⚠️ Exam. Code & Conduite';
+    else if (hasExamCode) alerteExamen = `⚠️ Exam. Code (${c.date_examen_code || 'Prévu'})`;
+    else if (hasExamCond) alerteExamen = `⚠️ Exam. Conduite (${c.date_examen_conduite || 'Prévu'})`;
+
+    return [
+      (i + 1).toString(),
+      `${c.nom} ${c.prenom}`.toUpperCase(),
+      c.contact || '—',
+      c.annexe?.replace('Tokoin Ramco (Siège)', 'Tokoin Ramco') || 'Siège',
+      `Permis ${c.categorie || 'B'}`,
+      `${formatMontant(c.montant_total)} F`,
+      `${formatMontant(c.montant_paye)} F`,
+      `${formatMontant(reste)} F`,
+      alerteExamen,
+    ];
+  });
+
+  autoTable(doc, {
+    startY: 52,
+    head: [[
+      '#',
+      'Candidat (Nom & Prénom)',
+      'Contact',
+      'Annexe',
+      'Catégorie',
+      'Forfait Total',
+      'Déjà Réglé',
+      'Reste Dû',
+      'Statut Examen'
+    ]],
+    body: tableData,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [30, 41, 59],
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold',
+      halign: 'center',
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: [30, 41, 59],
+    },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 55, fontStyle: 'bold' },
+      2: { cellWidth: 28, halign: 'center' },
+      3: { cellWidth: 32 },
+      4: { cellWidth: 22, halign: 'center' },
+      5: { cellWidth: 28, halign: 'right' },
+      6: { cellWidth: 28, halign: 'right', textColor: [4, 120, 87] },
+      7: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] },
+      8: { cellWidth: 35, halign: 'center', fontSize: 7.5 },
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    didDrawPage: (data) => {
+      // Pied de page
+      const fY = pageH - 8;
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `${autoEcole}  |  Siège Tokoin Ramco  |  Direction Générale : ${directeur}  |  Page ${data.pageNumber}`,
+        pageW / 2,
+        fY,
+        { align: 'center' }
+      );
+    },
+  });
+
+  doc.save(`etat_creances_impayes_${annexe.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+};
+
+

@@ -6,7 +6,7 @@ import {
   Pencil, Trash2, Clock, Check, CheckCheck, RotateCcw,
   KeyRound, LayoutGrid, List, Phone, Eye, EyeOff, Lock, Camera, ShieldCheck,
   Wifi, WifiOff, MapPin, Building2, Banknote, TrendingDown,
-  UserPlus, ArrowDownLeft
+  UserPlus, ArrowDownLeft, AlertTriangle
 } from 'lucide-react';
 
 import type { Candidat, Depense, Recette, RoleUtilisateur, Sexe, Seance } from './types';
@@ -15,7 +15,8 @@ import {
   generateBilanPDF, 
   generateRecuCandidatPDF, 
   generateRecuSupplementConduitePDF,
-  generatePresencePDF
+  generatePresencePDF,
+  generateImpayesPDF
 } from './lib/pdfGenerator';
 import { AuthScreen } from './components/AuthScreen';
 import { CandidateAvatar } from './components/CandidateAvatar';
@@ -100,6 +101,10 @@ export default function App() {
 
   // Vue Candidats (Cartes ou Tableau)
   const [candidatsViewMode, setCandidatsViewMode] = useState<'cartes' | 'tableau'>('cartes');
+
+  // Filtre spécial Candidats (Tous ou En attente de solde uniquement)
+  const [candidatsFilterSolde, setCandidatsFilterSolde] = useState<'TOUS' | 'NON_SOLDES'>('TOUS');
+  const [candidatToEncaisser, setCandidatToEncaisser] = useState<Candidat | null>(null);
 
   // Photo & Sexe pour nouveau candidat
   const [newCandPhoto, setNewCandPhoto] = useState<string | undefined>(undefined);
@@ -415,8 +420,22 @@ export default function App() {
     const matchQuery = `${c.nom} ${c.prenom} ${c.contact}`.toLowerCase().includes(searchQuery.toLowerCase());
     const matchDateFrom = !dateFrom || c.date_inscription >= dateFrom;
     const matchDateTo = !dateTo || c.date_inscription <= dateTo;
-    return matchAnnexe && matchQuery && matchDateFrom && matchDateTo;
+    const matchSolde = candidatsFilterSolde === 'NON_SOLDES' ? (c.montant_total || 0) > (c.montant_paye || 0) : true;
+    return matchAnnexe && matchQuery && matchDateFrom && matchDateTo && matchSolde;
   });
+
+  // Calculs spécifiques Recouvrement & Impayés (toujours calculés en temps réel sur l'annexe sélectionnée)
+  const candidatsNonSoldesList = candidats.filter((c) => {
+    const matchAnnexe = annexeFilter === 'Toutes' || c.annexe === annexeFilter;
+    return matchAnnexe && (c.montant_total || 0) > (c.montant_paye || 0);
+  });
+  const totalCreancesARecouvrer = candidatsNonSoldesList.reduce(
+    (acc, c) => acc + ((c.montant_total || 0) - (c.montant_paye || 0)),
+    0
+  );
+  const examensBloquesCount = candidatsNonSoldesList.filter(
+    (c) => c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME'
+  ).length;
 
   const filteredDepenses = depenses.filter((d) => {
     const matchAnnexe = annexeFilter === 'Toutes' || d.annexe === annexeFilter;
@@ -760,6 +779,56 @@ export default function App() {
     setSeances((prev) => prev.filter((s) => s.id !== seanceId));
     syncService.deleteSeance(seanceId);
     showToast('Séance supprimée.');
+  };
+
+  const handleEncaisserSolde = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!candidatToEncaisser) return;
+
+    const formData = new FormData(e.currentTarget);
+    const montantVerse = Number(formData.get('montant_verse')) || 0;
+    const modePaiement = (formData.get('mode_paiement') as string) || 'Espèces';
+    const motif = (formData.get('motif') as string) || 'Versement scolarité';
+    const dateOperation = (formData.get('date_operation') as string) || new Date().toISOString().split('T')[0];
+
+    if (montantVerse <= 0) {
+      alert('Veuillez saisir un montant de versement supérieur à 0.');
+      return;
+    }
+
+    const ancienPaye = candidatToEncaisser.montant_paye || 0;
+    const nouveauPaye = ancienPaye + montantVerse;
+    const updatedCand: Candidat = {
+      ...candidatToEncaisser,
+      montant_paye: nouveauPaye,
+    };
+
+    // Mettre à jour la liste des candidats
+    const updatedCands = candidats.map(c => c.id === updatedCand.id ? updatedCand : c);
+    setCandidats(updatedCands);
+    syncService.syncCandidat(updatedCand);
+
+    // Enregistrer la recette correspondante en caisse
+    const nouvelleRecette: Recette = {
+      id: `rec_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      date: dateOperation,
+      intitule: `${motif} - ${updatedCand.nom} ${updatedCand.prenom} [${modePaiement}]`,
+      annexe: updatedCand.annexe || DEFAULT_SIEGE,
+      montant: montantVerse,
+      candidat_id: updatedCand.id,
+    };
+    setRecettes((prev) => [nouvelleRecette, ...prev]);
+    syncService.syncRecette(nouvelleRecette);
+
+    setModalType(null);
+    setCandidatToEncaisser(null);
+
+    const reste = (updatedCand.montant_total || 0) - nouveauPaye;
+    if (reste <= 0) {
+      showToast(`🎉 Scolarité de ${updatedCand.nom} ${updatedCand.prenom} intégralement SOLDÉE !`);
+    } else {
+      showToast(`Versement de ${montantVerse.toLocaleString('fr-FR')} F enregistré avec succès ! Reste: ${reste.toLocaleString('fr-FR')} F`);
+    }
   };
 
   const handleAddSupplementConduite = (e: React.FormEvent<HTMLFormElement>) => {
@@ -1503,8 +1572,28 @@ export default function App() {
                     </button>
                   </div>
 
+                  {/* Bouton Toggle Attente de solde */}
                   <button
-                    onClick={() => generateCandidatsPDF(filteredCandidats)}
+                    type="button"
+                    onClick={() => setCandidatsFilterSolde(prev => prev === 'NON_SOLDES' ? 'TOUS' : 'NON_SOLDES')}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+                      candidatsFilterSolde === 'NON_SOLDES'
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-300'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
+                    }`}
+                    title="Afficher uniquement les candidats qui n'ont pas encore soldé"
+                  >
+                    <AlertTriangle className={`w-3.5 h-3.5 ${candidatsFilterSolde === 'NON_SOLDES' ? 'text-white' : 'text-amber-600'}`} />
+                    <span>En attente de solde</span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      candidatsFilterSolde === 'NON_SOLDES' ? 'bg-white text-rose-700' : 'bg-amber-200 text-amber-900'
+                    }`}>
+                      {candidatsNonSoldesList.length}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setModalType('export_pdf')}
                     className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -1529,6 +1618,70 @@ export default function App() {
                   </button>
                 </div>
               </div>
+
+              {/* Bannière Synthèse Recouvrement & Impayés (quand le filtre est actif) */}
+              {candidatsFilterSolde === 'NON_SOLDES' && (
+                <div className="bg-gradient-to-br from-rose-50 via-amber-50 to-orange-50 border border-rose-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold shadow-xs">
+                          <AlertTriangle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-extrabold text-slate-900">
+                            Tableau de Suivi & Recouvrement des Impayés
+                          </h3>
+                          <p className="text-xs text-slate-600">
+                            Annexe : <span className="font-semibold text-slate-800">{annexeFilter}</span> • {candidatsNonSoldesList.length} candidat(s) avec solde débiteur en cours
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => generateImpayesPDF(candidatsNonSoldesList, annexeFilter, schoolName, directorName)}
+                        className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+                        title="Télécharger l'état officiel PDF des créances et relances"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Télécharger PDF des Impayés</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCandidatsFilterSolde('TOUS')}
+                        className="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      >
+                        <span>✕ Voir tous</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3 Boîtes KPIs Recouvrement */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3 border-t border-rose-200/60">
+                    <div className="bg-white/90 p-3 rounded-xl border border-rose-100 shadow-2xs">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total à Recouvrer</p>
+                      <p className="text-xl font-black text-rose-600 tabular-nums mt-0.5">
+                        {totalCreancesARecouvrer.toLocaleString('fr-FR')} <span className="text-xs font-bold text-rose-500">FCFA</span>
+                      </p>
+                    </div>
+                    <div className="bg-white/90 p-3 rounded-xl border border-amber-100 shadow-2xs">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Élèves Débiteurs</p>
+                      <p className="text-xl font-black text-amber-700 tabular-nums mt-0.5">
+                        {candidatsNonSoldesList.length} <span className="text-xs font-normal text-slate-500">en attente de solde</span>
+                      </p>
+                    </div>
+                    <div className="bg-white/90 p-3 rounded-xl border border-orange-100 shadow-2xs">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alertes Examens Bloqués</p>
+                      <p className="text-xl font-black text-orange-600 tabular-nums mt-0.5">
+                        {examensBloquesCount} <span className="text-xs font-normal text-slate-500">{examensBloquesCount > 1 ? 'examens programmés non soldés' : 'examen programmé non soldé'}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
 
               {/* ================= VUE CARTES PROFILS (AVATARS HOMME / FEMME) ================= */}
@@ -1595,6 +1748,43 @@ export default function App() {
                             {solde > 0 ? `Reste: ${solde.toLocaleString('fr-FR')} F` : 'Soldé ✓'}
                           </span>
                         </div>
+
+                        {/* Alerte Examen programmé sans solde */}
+                        {solde > 0 && (c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') && (
+                          <div className="mt-1.5 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[9px] font-bold flex items-center gap-1">
+                            <AlertTriangle className="w-2.5 h-2.5 text-rose-600 shrink-0" />
+                            <span>Examen programmé non soldé !</span>
+                          </div>
+                        )}
+
+                        {/* Raccourci encaissement direct & relance si dette */}
+                        {solde > 0 && (
+                          <div className="mt-2 w-full flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCandidatToEncaisser(c);
+                                setModalType('encaisser_solde');
+                              }}
+                              className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded-lg shadow-2xs transition flex items-center justify-center gap-1 cursor-pointer"
+                              title="Encaisser un versement sur ce solde"
+                            >
+                              <Banknote className="w-3 h-3 text-white" />
+                              <span>+ Encaisser</span>
+                            </button>
+                            <a
+                              href={`https://wa.me/228${(c.contact || '').replace(/\s+/g, '').replace('+', '')}?text=${encodeURIComponent(
+                                `Bonjour ${c.prenom || ''} ! L'Auto-École Saint Edmond vous rappelle qu'il vous reste un solde de *${solde.toLocaleString('fr-FR')} FCFA* sur votre forfait permis ${c.categorie || 'B'}. Merci de régulariser auprès du secrétariat ou par T-Money/Flooz.`
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition"
+                              title="Relance de solde par WhatsApp"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                            </a>
+                          </div>
+                        )}
 
                         {/* Boutons Actions Carte Candidat */}
                         <div className="mt-2.5 w-full pt-2 border-t border-slate-100 flex items-center gap-1.5">
@@ -1747,9 +1937,17 @@ export default function App() {
                                     ✓ Soldé
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                                    Reste: {(solde || 0).toLocaleString('fr-FR')} F
-                                  </span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                                      Reste: {(solde || 0).toLocaleString('fr-FR')} F
+                                    </span>
+                                    {(c.statut_examen_code === 'PROGRAMME' || c.statut_examen_conduite === 'PROGRAMME') && (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                        <AlertTriangle className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                                        <span>Examen non soldé</span>
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </td>
@@ -1767,6 +1965,34 @@ export default function App() {
                             {/* Actions */}
                             <td className="px-4 py-3.5 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end gap-1.5">
+                                {solde > 0 && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCandidatToEncaisser(c);
+                                        setModalType('encaisser_solde');
+                                      }}
+                                      className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
+                                      title="Encaisser un versement sur ce solde"
+                                    >
+                                      <Banknote className="w-3 h-3 text-white" />
+                                      <span>+ Encaisser</span>
+                                    </button>
+                                    <a
+                                      href={`https://wa.me/228${contactClean}?text=${encodeURIComponent(
+                                        `Bonjour ${c.prenom || ''} ! L'Auto-École Saint Edmond vous rappelle qu'il vous reste un solde de *${solde.toLocaleString('fr-FR')} FCFA* sur votre forfait permis ${c.categorie || 'B'}. Merci de bien vouloir régulariser auprès du secrétariat ou par T-Money/Flooz avant vos prochaines séances.`
+                                      )}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg transition"
+                                      title="Envoyer relance solde par WhatsApp"
+                                    >
+                                      <MessageSquare className="w-3 h-3 text-emerald-600" />
+                                      <span>Relancer</span>
+                                    </a>
+                                  </>
+                                )}
                                 <button
                                   onClick={() => {
                                     setSelectedCandidatForPlanning(c);
@@ -3072,6 +3298,205 @@ export default function App() {
       </div>
 
       {/* ================= MODALS SYSTEM ================= */}
+
+      {/* Modal Encaissement Rapide de Solde / Versement */}
+      {modalType === 'encaisser_solde' && candidatToEncaisser && (() => {
+        const montantTotal = candidatToEncaisser.montant_total || 0;
+        const montantPaye = candidatToEncaisser.montant_paye || 0;
+        const resteDu = Math.max(0, montantTotal - montantPaye);
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-xs">
+                    <Banknote className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base leading-tight">Encaisser un Versement</h3>
+                    <p className="text-xs text-emerald-100 font-medium">Règlement du solde de scolarité</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalType(null);
+                    setCandidatToEncaisser(null);
+                  }}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Fiche récapitulative de l'élève */}
+              <div className="p-6 space-y-5">
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5">
+                  <CandidateAvatar
+                    sexe={candidatToEncaisser.sexe}
+                    photoUrl={candidatToEncaisser.photo_url}
+                    size="md"
+                    editable={false}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">
+                      {candidatToEncaisser.nom} {candidatToEncaisser.prenom}
+                    </h4>
+                    <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-0.5">
+                      <Phone className="w-3 h-3" />
+                      <span>{candidatToEncaisser.contact || '—'}</span>
+                      <span className="text-slate-400">• Permis {candidatToEncaisser.categorie || 'B'}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Annexe : {candidatToEncaisser.annexe || 'Siège'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Synthèse Financière du Forfait */}
+                <div className="grid grid-cols-3 gap-2.5 text-center">
+                  <div className="bg-slate-100/70 p-2.5 rounded-xl border border-slate-200/60">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Forfait Total</span>
+                    <span className="text-xs font-extrabold text-slate-800 tabular-nums">
+                      {montantTotal.toLocaleString('fr-FR')} F
+                    </span>
+                  </div>
+                  <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200/60">
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase block">Déjà Réglé</span>
+                    <span className="text-xs font-extrabold text-emerald-800 tabular-nums">
+                      {montantPaye.toLocaleString('fr-FR')} F
+                    </span>
+                  </div>
+                  <div className="bg-rose-50 p-2.5 rounded-xl border border-rose-200/80 ring-1 ring-rose-200">
+                    <span className="text-[10px] font-extrabold text-rose-700 uppercase block">Reste à Payer</span>
+                    <span className="text-xs font-black text-rose-700 tabular-nums">
+                      {resteDu.toLocaleString('fr-FR')} F
+                    </span>
+                  </div>
+                </div>
+
+                {/* Formulaire de versement */}
+                <form onSubmit={handleEncaisserSolde} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Montant Versé ce jour (FCFA) *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        id="input_montant_verse"
+                        name="montant_verse"
+                        required
+                        min="1"
+                        max={resteDu > 0 ? resteDu * 2 : 1000000}
+                        defaultValue={resteDu}
+                        className="w-full pl-3 pr-14 py-2.5 bg-white border border-slate-300 rounded-xl font-black text-slate-900 text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="Ex: 25000"
+                      />
+                      <span className="absolute right-3.5 top-3 text-xs font-bold text-slate-400">FCFA</span>
+                    </div>
+
+                    {/* Suggestions rapides */}
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                      <span className="text-[10px] font-medium text-slate-400">Raccourcis :</span>
+                      {resteDu > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const inp = document.getElementById('input_montant_verse') as HTMLInputElement;
+                            if (inp) inp.value = String(resteDu);
+                          }}
+                          className="px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg transition cursor-pointer"
+                        >
+                          Soldé tout ({resteDu.toLocaleString('fr-FR')} F)
+                        </button>
+                      )}
+                      {[10000, 20000, 30000, 50000].filter(m => m < resteDu).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => {
+                            const inp = document.getElementById('input_montant_verse') as HTMLInputElement;
+                            if (inp) inp.value = String(m);
+                          }}
+                          className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[10px] rounded-lg transition cursor-pointer"
+                        >
+                          {m.toLocaleString('fr-FR')} F
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Mode de Règlement
+                      </label>
+                      <select
+                        name="mode_paiement"
+                        defaultValue="Espèces"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="Espèces">Espèces (Caisse)</option>
+                        <option value="T-Money">T-Money (Togocom)</option>
+                        <option value="Flooz">Flooz (Moov)</option>
+                        <option value="Virement bancaire">Virement bancaire</option>
+                        <option value="Chèque">Chèque</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Date d'opération
+                      </label>
+                      <input
+                        type="date"
+                        name="date_operation"
+                        defaultValue={new Date().toISOString().split('T')[0]}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Motif du versement (Libellé en Caisse)
+                    </label>
+                    <input
+                      type="text"
+                      name="motif"
+                      defaultValue={resteDu > 0 ? "Versement solde de scolarité" : "Règlement scolarité"}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalType(null);
+                        setCandidatToEncaisser(null);
+                      }}
+                      className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-800 transition cursor-pointer"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Valider l'Encaissement</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal Modification Candidat - Design Moderne par Sections */}
       {modalType === 'edit_candidat' && editingCandidat && (
@@ -4644,15 +5069,17 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
-                  const nonSoldes = filteredCandidats.filter(c => c.montant_paye < c.montant_total);
-                  generateCandidatsPDF(nonSoldes, 'État des Soldes de Scolarité Débiteurs');
+                  generateImpayesPDF(candidatsNonSoldesList, annexeFilter, schoolName, directorName);
                   setModalType(null);
-                  showToast('PDF Téléchargé');
+                  showToast('État des Impayés PDF Téléchargé');
                 }}
-                className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 font-medium text-sm text-slate-700 transition"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-50 font-bold text-sm text-rose-800 transition"
               >
-                <span>Candidats Non Soldés (Relance Dettes)</span>
-                <Download className="w-4 h-4 text-blue-600" />
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" />
+                  <span>État Officiel des Impayés & Relances ({candidatsNonSoldesList.length})</span>
+                </div>
+                <Download className="w-4 h-4 text-rose-600" />
               </button>
             </div>
             <div className="pt-2 flex justify-end">

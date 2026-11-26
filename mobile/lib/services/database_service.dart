@@ -263,6 +263,61 @@ class DatabaseService {
     }
   }
 
+  void encaisserSolde({
+    required String candidatId,
+    required int montantVerse,
+    String modePaiement = 'Espèces',
+    String motif = 'Versement solde de scolarité',
+  }) {
+    final index = _candidats.indexWhere((c) => c.id == candidatId);
+    if (index != -1 && montantVerse > 0) {
+      final old = _candidats[index];
+      final updatedCand = Candidat(
+        id: old.id,
+        nom: old.nom,
+        prenom: old.prenom,
+        contact: old.contact,
+        email: old.email,
+        adresse: old.adresse,
+        annexe: old.annexe,
+        categorie: old.categorie,
+        langue: old.langue,
+        sexe: old.sexe,
+        montantTotal: old.montantTotal,
+        montantPaye: old.montantPaye + montantVerse,
+        dateInscription: old.dateInscription,
+        statut: old.statut,
+        statutExamenCode: old.statutExamenCode,
+        dateExamenCode: old.dateExamenCode,
+        statutExamenConduite: old.statutExamenConduite,
+        dateExamenConduite: old.dateExamenConduite,
+        codeAcces: old.codeAcces,
+        nbConduitesPrevues: old.nbConduitesPrevues,
+        nbConduitesEffectuees: old.nbConduitesEffectuees,
+        dureeFormationMois: old.dureeFormationMois,
+        dateDebutFormation: old.dateDebutFormation,
+        dateFinFormation: old.dateFinFormation,
+        photoUrl: old.photoUrl,
+        typeFormation: old.typeFormation,
+      );
+      _candidats[index] = updatedCand;
+      _syncCandidatToSupabase(updatedCand);
+
+      final r = Recette(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        intitule: '$motif - ${old.nom} ${old.prenom} [$modePaiement]',
+        montant: montantVerse,
+        date: DateTime.now().toIso8601String().split('T')[0],
+        annexe: old.annexe,
+        candidatId: old.id,
+      );
+      _recettes.insert(0, r);
+      _syncRecetteToSupabase(r);
+
+      _saveLocal();
+    }
+  }
+
   // ==========================================
   // SYNCHRONISATION SUPABASE (ONLINE / CLOUD)
   // ==========================================

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/candidat.dart';
 import '../services/database_service.dart';
 
@@ -20,6 +21,7 @@ class CandidatsTab extends StatefulWidget {
 class _CandidatsTabState extends State<CandidatsTab> {
   String _searchQuery = '';
   bool _isSyncing = false;
+  bool _filterNonSoldesOnly = false;
   final currencyFormat = NumberFormat('#,###', 'fr_FR');
 
   @override
@@ -1007,15 +1009,254 @@ class _CandidatsTabState extends State<CandidatsTab> {
     );
   }
 
+  void _relancerWhatsApp(Candidat c) async {
+    final cleanPhone =
+        c.contact.replaceAll(RegExp(r'\s+'), '').replaceAll('+', '');
+    final msg = Uri.encodeComponent(
+      "Bonjour ${c.prenom} ! L'Auto-École Saint Edmond vous rappelle qu'il vous reste un solde de ${currencyFormat.format(c.resteAPayer)} FCFA sur votre formation permis ${c.categorie}. Merci de bien vouloir régulariser auprès du secrétariat ou par T-Money/Flooz avant vos prochaines séances.",
+    );
+    final url = Uri.parse("https://wa.me/228$cleanPhone?text=$msg");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint("WhatsApp error: $e");
+    }
+  }
+
+  void _showEncaisserSoldeDialog(Candidat c) {
+    final reste = c.resteAPayer;
+    final montantController = TextEditingController(text: reste.toString());
+    final motifController =
+        TextEditingController(text: 'Versement solde de scolarité');
+    String selectedMode = 'Espèces';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1FAE5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.payments_outlined,
+                    color: Color(0xFF059669), size: 24),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Encaisser Solde',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('Règlement scolarité',
+                        style:
+                            TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Info candidat
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(0xFFEFF6FF),
+                        child: Text(
+                          c.nom.isNotEmpty ? c.nom[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2563EB)),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${c.nom} ${c.prenom}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(
+                              'Permis ${c.categorie} • Reste: ${currencyFormat.format(reste)} F',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFFDC2626),
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                const Text('Montant versé ce jour (FCFA) *',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF475569))),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: montantController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    suffixText: 'FCFA',
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      montantController.text = reste.toString();
+                    },
+                    icon: const Icon(Icons.check_circle_outline,
+                        size: 14, color: Color(0xFF059669)),
+                    label: Text(
+                      'Tout solder (${currencyFormat.format(reste)} F)',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF059669),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                const Text('Mode de règlement',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF475569))),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedMode,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'Espèces', child: Text('Espèces (Caisse)')),
+                    DropdownMenuItem(
+                        value: 'T-Money', child: Text('T-Money (Togocom)')),
+                    DropdownMenuItem(
+                        value: 'Flooz', child: Text('Flooz (Moov)')),
+                    DropdownMenuItem(
+                        value: 'Virement bancaire',
+                        child: Text('Virement bancaire')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setDlgState(() => selectedMode = v);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler',
+                  style: TextStyle(color: Color(0xFF64748B))),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final montant = int.tryParse(montantController.text) ?? 0;
+                if (montant <= 0) return;
+
+                DatabaseService.instance.encaisserSolde(
+                  candidatId: c.id,
+                  montantVerse: montant,
+                  modePaiement: selectedMode,
+                  motif: motifController.text.trim().isNotEmpty
+                      ? motifController.text.trim()
+                      : 'Versement solde de scolarité',
+                );
+
+                Navigator.pop(ctx);
+                setState(() {});
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF059669),
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      montant >= reste
+                          ? '🎉 Scolarité de ${c.nom} ${c.prenom} intégralement SOLDÉE !'
+                          : 'Versement de ${currencyFormat.format(montant)} F enregistré avec succès.',
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF059669),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Encaisser',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─────────────────────────────────────────────────────────
   // BUILD PRINCIPAL
   // ─────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final candidats = DatabaseService.instance.getCandidats(
+    final allCandidats = DatabaseService.instance.getCandidats(
       annexe: widget.selectedAnnexe,
       query: _searchQuery,
     );
+    final debiteurs = allCandidats.where((c) => c.resteAPayer > 0).toList();
+    final totalCreances =
+        debiteurs.fold<int>(0, (sum, c) => sum + c.resteAPayer);
+    final examensBloques = debiteurs
+        .where((c) =>
+            c.statutExamenCode == 'PROGRAMME' ||
+            c.statutExamenConduite == 'PROGRAMME')
+        .length;
+
+    final candidats = _filterNonSoldesOnly ? debiteurs : allCandidats;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -1085,6 +1326,145 @@ class _CandidatsTabState extends State<CandidatsTab> {
               ],
             ),
           ),
+
+          // Filtres rapides : Tous vs En attente de solde
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () => setState(() => _filterNonSoldesOnly = false),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: !_filterNonSoldesOnly
+                          ? const Color(0xFF2563EB)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: !_filterNonSoldesOnly
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Text(
+                      'Tous (${allCandidats.length})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: !_filterNonSoldesOnly
+                            ? Colors.white
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () => setState(() => _filterNonSoldesOnly = true),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _filterNonSoldesOnly
+                          ? const Color(0xFFDC2626)
+                          : const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _filterNonSoldesOnly
+                            ? const Color(0xFFDC2626)
+                            : const Color(0xFFFECACA),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 14,
+                          color: _filterNonSoldesOnly
+                              ? Colors.white
+                              : const Color(0xFFDC2626),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'En attente de solde (${debiteurs.length})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _filterNonSoldesOnly
+                                ? Colors.white
+                                : const Color(0xFFDC2626),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bannière Synthèse Recouvrement
+          if (_filterNonSoldesOnly)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFEF2F2), Color(0xFFFFF7ED)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDC2626),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.account_balance_wallet,
+                          color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'TOTAL À RECOUVRER',
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF991B1B)),
+                          ),
+                          Text(
+                            '${currencyFormat.format(totalCreances)} FCFA',
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFFDC2626)),
+                          ),
+                          if (examensBloques > 0)
+                            Text(
+                              '⚠️ $examensBloques examen${examensBloques > 1 ? "s" : ""} programmé${examensBloques > 1 ? "s" : ""} avec impayé',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFC2410C)),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Compteur + info sync
           if (candidats.isNotEmpty || _isSyncing)
@@ -1289,6 +1669,100 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                   ),
                                 ],
                               ),
+                              if (reste > 0 &&
+                                  (c.statutExamenCode == 'PROGRAMME' ||
+                                      c.statutExamenConduite == 'PROGRAMME'))
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFE4E6),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                          color: const Color(0xFFFECDD3)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.warning,
+                                            size: 13,
+                                            color: Color(0xFFE11D48)),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Examen programmé non soldé !',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFE11D48)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (reste > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () =>
+                                              _showEncaisserSoldeDialog(c),
+                                          icon: const Icon(Icons.add, size: 14),
+                                          label: const Text('Encaisser',
+                                              style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold)),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                const Color(0xFF059669),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 7),
+                                            minimumSize: Size.zero,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      InkWell(
+                                        onTap: () => _relancerWhatsApp(c),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFECFDF5),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color:
+                                                    const Color(0xFFA7F3D0)),
+                                          ),
+                                          child: const Row(
+                                            children: [
+                                              Icon(Icons.chat_bubble_outline,
+                                                  size: 14,
+                                                  color: Color(0xFF059669)),
+                                              SizedBox(width: 4),
+                                              Text('Relancer WhatsApp',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Color(0xFF059669))),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                         );
