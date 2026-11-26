@@ -295,8 +295,6 @@ class DatabaseService {
         nbConduitesPrevues: old.nbConduitesPrevues,
         nbConduitesEffectuees: old.nbConduitesEffectuees,
         dureeFormationMois: old.dureeFormationMois,
-        dateDebutFormation: old.dateDebutFormation,
-        dateFinFormation: old.dateFinFormation,
         photoUrl: old.photoUrl,
         typeFormation: old.typeFormation,
       );
