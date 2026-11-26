@@ -1025,6 +1025,312 @@ class _CandidatsTabState extends State<CandidatsTab> {
     }
   }
 
+  // ─────────────────────────────────────────────
+  // DIALOG — PLANIFIER UNE SÉANCE DE CONDUITE
+  // ─────────────────────────────────────────────
+  void _showPlanningSeanceDialog(Candidat c) {
+    String typeSeance = 'CONDUITE';
+    int dureeMinutes = 60;
+    final moniteurController = TextEditingController(text: 'Moniteur Saint Edmond');
+    final notesController = TextEditingController();
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    final shortcuts = [30, 45, 60, 90, 120];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheet) {
+          bool isSaving = false;
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36, height: 4,
+                        decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(2)),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(10)),
+                          child: const Icon(Icons.calendar_month_rounded, color: Color(0xFF2563EB), size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Planifier une Séance',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                              Text('${c.prenom} ${c.nom}',
+                                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    // Type séance
+                    const Text('Type de séance', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setSheet(() => typeSeance = 'CONDUITE'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: typeSeance == 'CONDUITE' ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.directions_car_rounded, size: 16,
+                                      color: typeSeance == 'CONDUITE' ? Colors.white : const Color(0xFF64748B)),
+                                  const SizedBox(width: 6),
+                                  Text('Conduite', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold,
+                                      color: typeSeance == 'CONDUITE' ? Colors.white : const Color(0xFF64748B))),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setSheet(() => typeSeance = 'CODE'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: typeSeance == 'CODE' ? const Color(0xFF7C3AED) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.menu_book_rounded, size: 16,
+                                      color: typeSeance == 'CODE' ? Colors.white : const Color(0xFF64748B)),
+                                  const SizedBox(width: 6),
+                                  Text('Code', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold,
+                                      color: typeSeance == 'CODE' ? Colors.white : const Color(0xFF64748B))),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Date & Heure
+                    const Text('Date & Heure', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final d = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now().add(const Duration(days: 1)),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (d != null) setSheet(() => selectedDate = d);
+                            },
+                            icon: const Icon(Icons.calendar_today_rounded, size: 15),
+                            label: Text(
+                              selectedDate == null ? 'Choisir la date' : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF2563EB),
+                              side: const BorderSide(color: Color(0xFFBFDBFE)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final t = await showTimePicker(
+                                context: context,
+                                initialTime: const TimeOfDay(hour: 8, minute: 0),
+                              );
+                              if (t != null) setSheet(() => selectedTime = t);
+                            },
+                            icon: const Icon(Icons.access_time_rounded, size: 15),
+                            label: Text(
+                              selectedTime == null ? 'Choisir l\'heure' : selectedTime!.format(context),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF2563EB),
+                              side: const BorderSide(color: Color(0xFFBFDBFE)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Durée
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Durée', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(7)),
+                          child: Text('$dureeMinutes min',
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: shortcuts.map((s) {
+                        final active = dureeMinutes == s;
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: GestureDetector(
+                              onTap: () => setSheet(() => dureeMinutes = s),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: active ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    s < 60 ? '${s}mn' : '${s ~/ 60}h${s % 60 == 0 ? '' : '${s % 60}'}',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,
+                                        color: active ? Colors.white : const Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    // Moniteur
+                    const Text('Moniteur / Formateur', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: moniteurController,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2563EB))),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Notes
+                    const Text('Lieu / Objectif (optionnel)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: notesController,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Circuit, objectif pédagogique...',
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2563EB))),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Bouton
+                    StatefulBuilder(
+                      builder: (ctx2, setSave) => SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: ElevatedButton.icon(
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  if (selectedDate == null || selectedTime == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Veuillez choisir une date et une heure.'),
+                                          backgroundColor: Color(0xFFEF4444)),
+                                    );
+                                    return;
+                                  }
+                                  final dt = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day,
+                                      selectedTime!.hour, selectedTime!.minute);
+                                  setSave(() => isSaving = true);
+                                  final ok = await DatabaseService.instance.ajouterSeance(
+                                    candidatId: c.id,
+                                    typeSeance: typeSeance,
+                                    dateHeure: dt.toIso8601String(),
+                                    dureeMinutes: dureeMinutes,
+                                    moniteurNom: moniteurController.text.trim().isEmpty
+                                        ? 'Moniteur Saint Edmond'
+                                        : moniteurController.text.trim(),
+                                    notes: notesController.text.trim(),
+                                  );
+                                  setSave(() => isSaving = false);
+                                  if (!context.mounted) return;
+                                  Navigator.pop(ctx);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(ok ? 'Séance planifiée avec succès !' : 'Erreur lors de l\'enregistrement.'),
+                                      backgroundColor: ok ? const Color(0xFF059669) : const Color(0xFFEF4444),
+                                    ),
+                                  );
+                                },
+                          icon: isSaving
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.check_rounded, size: 18),
+                          label: Text(isSaving ? 'Enregistrement...' : 'Enregistrer le créneau',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showEncaisserSoldeDialog(Candidat c) {
     final reste = c.resteAPayer;
     final montantController = TextEditingController(text: reste.toString());
@@ -1627,6 +1933,18 @@ class _CandidatsTabState extends State<CandidatsTab> {
                                   ),
                                   Row(
                                     children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.calendar_month_rounded,
+                                            size: 20,
+                                            color: Color(0xFF2563EB)),
+                                        tooltip: 'Planifier une séance',
+                                        onPressed: () =>
+                                            _showPlanningSeanceDialog(c),
+                                        style: IconButton.styleFrom(
+                                            backgroundColor:
+                                                const Color(0xFFEFF6FF)),
+                                      ),
+                                      const SizedBox(width: 6),
                                       IconButton(
                                         icon: const Icon(Icons.add_road,
                                             size: 20,

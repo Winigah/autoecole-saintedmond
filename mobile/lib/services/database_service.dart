@@ -317,6 +317,41 @@ class DatabaseService {
   }
 
   // ==========================================
+  // PLANNING DES SÉANCES
+  // ==========================================
+
+  /// Ajoute une séance planifiée pour un candidat et la pousse vers Supabase
+  Future<bool> ajouterSeance({
+    required String candidatId,
+    required String typeSeance,
+    required String dateHeure,
+    required int dureeMinutes,
+    required String moniteurNom,
+    String? notes,
+  }) async {
+    final client = SupabaseConfig.client;
+    final seance = {
+      'id': 'seance_${DateTime.now().millisecondsSinceEpoch}_${candidatId.substring(0, 4)}',
+      'candidat_id': candidatId,
+      'type_seance': typeSeance,
+      'date_heure': dateHeure,
+      'duree_minutes': dureeMinutes,
+      'moniteur_nom': moniteurNom,
+      'statut': 'PLANIFIE',
+      if (notes != null && notes.isNotEmpty) 'notes': notes,
+    };
+    try {
+      if (client != null) {
+        await client.from('seances').upsert(seance);
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Erreur ajout séance Supabase: $e');
+      return false;
+    }
+  }
+
+  // ==========================================
   // SYNCHRONISATION SUPABASE (ONLINE / CLOUD)
   // ==========================================
 

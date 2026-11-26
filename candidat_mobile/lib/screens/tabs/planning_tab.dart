@@ -5,8 +5,9 @@ import '../../services/candidat_service.dart';
 
 class PlanningTab extends StatefulWidget {
   final CandidatPortalData data;
+  final Future<void> Function()? onRefresh;
 
-  const PlanningTab({super.key, required this.data});
+  const PlanningTab({super.key, required this.data, this.onRefresh});
 
   @override
   State<PlanningTab> createState() => _PlanningTabState();
@@ -26,8 +27,11 @@ class _PlanningTabState extends State<PlanningTab> {
       return true;
     }).toList();
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh ?? () async {},
+      color: const Color(0xFF2563EB),
+      child: SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +177,8 @@ class _PlanningTabState extends State<PlanningTab> {
           const SizedBox(height: 12),
         ],
       ),
-    );
+      ), // SingleChildScrollView
+    ); // RefreshIndicator
   }
 
   Widget _buildStatItem(String label, String value, Color color) {

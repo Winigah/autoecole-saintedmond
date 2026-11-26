@@ -100,7 +100,7 @@ class _CandidatHomeScreenState extends State<CandidatHomeScreen> {
         onNavToFinances: () => setState(() => _currentIndex = 2),
         onNavToRevision: () => setState(() => _currentIndex = 3),
       ),
-      PlanningTab(data: _portalData),
+      PlanningTab(data: _portalData, onRefresh: () => _actualiser(silencieux: false)),
       FinancesTab(data: _portalData),
       const RevisionQuizTab(),
     ];
