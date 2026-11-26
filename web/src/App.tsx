@@ -3936,89 +3936,86 @@ export default function App() {
 
               <div className="p-6 space-y-6">
                 {/* Formulaire : Programmer une séance */}
-                <div className="bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 border border-indigo-100 rounded-3xl p-5 sm:p-6 shadow-xs">
-                  <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-indigo-100/70">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                        <Plus className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-extrabold text-slate-900">Programmer une Séance Personnalisée</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Définissez la date, l'heure et la durée sur mesure pour cet élève</p>
-                      </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-slate-200">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                      <Plus className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 hidden sm:inline-block">
-                      📱 Visible sur l'App Candidat
-                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        Programmer une Nouvelle Séance
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Date, heure et durée personnalisées pour cet élève
+                      </p>
+                    </div>
                   </div>
 
-                  <form onSubmit={handleAddSeance} className="space-y-4">
-                    {/* Ligne 1 : Type de séance + Date & Heure */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <form onSubmit={handleAddSeance} className="space-y-3">
+                    {/* Ligne 1 : Type, Date & Heure, Durée */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {/* Type de séance */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
                           Type de séance <span className="text-rose-500">*</span>
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-1.5">
                           <button
                             type="button"
                             onClick={() => setNewSeanceType('CONDUITE')}
-                            className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                               newSeanceType === 'CONDUITE'
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200 ring-2 ring-blue-300'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-200'
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                             }`}
                           >
-                            <Car className="w-4 h-4" />
-                            <span>Conduite Pratique</span>
+                            <Car className="w-3.5 h-3.5" />
+                            <span>Conduite</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setNewSeanceType('CODE')}
-                            className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                               newSeanceType === 'CODE'
-                                ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-200 ring-2 ring-purple-300'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-200'
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                             }`}
                           >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Cours de Code</span>
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>Code</span>
                           </button>
                         </div>
                       </div>
 
                       {/* Date & Heure */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                          Date & Heure programmée <span className="text-rose-500">*</span>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Date & Heure <span className="text-rose-500">*</span>
                         </label>
                         <input
                           required
                           type="datetime-local"
                           value={newSeanceDate}
                           onChange={(e) => setNewSeanceDate(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
-                    </div>
 
-                    {/* Ligne 2 : Durée (Saisie Manuelle libre + Raccourcis à partir de 30 min) */}
-                    <div className="bg-white/80 p-3.5 rounded-2xl border border-indigo-100/90 shadow-2xs">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
-                        <label className="block text-xs font-bold text-slate-800">
-                          Durée de la séance <span className="text-[11px] font-normal text-slate-500">(saisie manuelle en minutes)</span>
-                        </label>
-                        {newSeanceDuree > 0 && (
-                          <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                            Durée sélectionnée : {newSeanceDuree} min
-                            {newSeanceDuree >= 60 && ` (${Math.floor(newSeanceDuree / 60)}h${newSeanceDuree % 60 > 0 ? (newSeanceDuree % 60) + 'min' : ''})`}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-36 shrink-0">
+                      {/* Durée avec saisie manuelle libre */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-bold text-slate-700">
+                            Durée (minutes) <span className="text-rose-500">*</span>
+                          </label>
+                          {newSeanceDuree > 0 && (
+                            <span className="text-[10px] font-bold text-indigo-700">
+                              {newSeanceDuree >= 60
+                                ? `${Math.floor(newSeanceDuree / 60)}h${newSeanceDuree % 60 > 0 ? (newSeanceDuree % 60) + 'min' : ''}`
+                                : `${newSeanceDuree} min`}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
                           <input
                             type="number"
                             required
@@ -4027,62 +4024,55 @@ export default function App() {
                             step="5"
                             value={newSeanceDuree || ''}
                             onChange={(e) => setNewSeanceDuree(Number(e.target.value) || 0)}
-                            placeholder="Ex: 45"
-                            className="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-11 py-2 text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
-                          <span className="absolute right-3 top-2.5 text-xs font-bold text-slate-400">min</span>
+                          <span className="absolute right-3 top-1.5 text-xs font-medium text-slate-400">min</span>
                         </div>
-
                         {/* Raccourcis rapides à partir de 30 min */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Raccourcis :</span>
-                          {[
-                            { min: 30, label: '30 min' },
-                            { min: 45, label: '45 min' },
-                            { min: 60, label: '1 heure' },
-                            { min: 90, label: '1h30' },
-                            { min: 120, label: '2 heures' },
-                          ].map((preset) => (
+                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                          {[30, 45, 60, 90, 120].map((min) => (
                             <button
-                              key={preset.min}
+                              key={min}
                               type="button"
-                              onClick={() => setNewSeanceDuree(preset.min)}
-                              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                                newSeanceDuree === preset.min
-                                  ? 'bg-indigo-600 text-white shadow-xs'
-                                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                              onClick={() => setNewSeanceDuree(min)}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border transition cursor-pointer ${
+                                newSeanceDuree === min
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                               }`}
                             >
-                              {preset.label}
+                              {min < 60 ? `${min}m` : min === 60 ? '1h' : min === 90 ? '1h30' : '2h'}
                             </button>
                           ))}
                         </div>
                       </div>
                     </div>
 
-                    {/* Ligne 3 : Moniteur & Lieu / Objectif */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Ligne 2 : Moniteur & Lieu / Objectif */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       {/* Moniteur */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Moniteur / Formateur</label>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Moniteur / Formateur
+                        </label>
                         <input
                           type="text"
                           value={newSeanceMoniteur}
                           onChange={(e) => setNewSeanceMoniteur(e.target.value)}
-                          placeholder="Ex: M. KOFFI (Moniteur Conduite)"
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
 
                       {/* Lieu / Objectif */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Lieu / Circuit / Objectif</label>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Lieu / Circuit / Objectif
+                        </label>
                         <input
                           type="text"
                           value={newSeanceNotes}
                           onChange={(e) => setNewSeanceNotes(e.target.value)}
-                          placeholder="Ex: Circuit Tokoin Ramco - Créneau & Manœuvres"
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                     </div>
@@ -4091,9 +4081,9 @@ export default function App() {
                     <div className="pt-2 flex justify-end">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold transition shadow-xs flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Check className="w-4 h-4" />
+                        <Check className="w-3.5 h-3.5" />
                         <span>Enregistrer le créneau</span>
                       </button>
                     </div>
@@ -4159,11 +4149,11 @@ export default function App() {
                                       isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                                     }`}
                                   >
-                                    {isDone ? 'Effectué ✓' : 'À venir'}
+                                    {isDone ? 'Effectué' : 'À venir'}
                                   </span>
                                 </div>
                                 <p className="text-[11px] font-semibold text-indigo-700 mt-0.5 capitalize">
-                                  📅 {dateFormatted}
+                                  {dateFormatted}
                                 </p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">
                                   Moniteur : {s.moniteur_nom || 'Saint Edmond'}
